@@ -4,21 +4,36 @@
 <html>
 <head>
   <script type="text/javascript" src="underscore.js"></script>
+  <script type="text/javascript" src="bundle.js"></script>
 </head>
+
+<style>
+body {
+  margin: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#main {
+  width: 800px;
+  height: 600px;
+  border: 1px solid black;
+}
+</style>
+
 <body>
-  <div>
-    <baskets></baskets>
-    <arrangement>
-      <canvas id="arrangement" width="384" height="384"></canvas>
-    </arrangement>
-  </div>
-  <script>
-    var canvasSize = 384;
-  </script>
-  <script type="text/javascript" src="flowers.js"></script>
-  <script type="text/javascript" src="baskets.js"></script>
-  <script type="text/javascript" src="arrangement.js"></script>
-  <script type="text/javascript" src="bodyGenerate.js"></script>
+  <canvas id="main" width="800" height="600"></canvas>
 </body>
+
+<script src="render.js"></script>
+<script src="bodyGenerate.js"></script>
+<script src="default.vs"></script>
+<script src="default.fs"></script>
+
+<script>
+var mainCanvas = document.querySelector('#main');
+Render.makeDefault(mainCanvas).render();
+</script>
 </html>
 
