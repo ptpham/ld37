@@ -97,7 +97,58 @@ function computeBodyNormals(result, triangles) {
   }
 }
 
-return { computeBodyNormals, collideBodyBody, collideBodyPoint };
+var diff = v2.create();
+var springDiffs = [v2.create(), v2.create(), v2.create()];
+function segmentSprings(triangles, lengths, alpha) {
+  if (alpha == 0) return;
+  alpha = alpha || 1;
+
+  for (var i = 0; i < triangles.length; i++) {
+    var triangle = triangles[i];
+
+    for (var j = 0; j < triangle.length; j++) {
+      var p0 = triangle[j];
+      var p1 = triangle[(j+1)%3];
+      var diff = springDiffs[j];
+
+      v2.sub(diff, p1, p0);
+      var delta = lengths[i] - v2.length(diff);
+      v2.scale(diff, diff, alpha*delta/(4*lengths[i][j]));
+
+      var spring0 = springDiffs[j];
+      var spring1 = springDiffs[(j+1)%3];
+      v2.sub(spring0, spring0, diff);
+      v2.add(spring1, spring1, diff);
+    }
+  }
+}
+
+function averageCommonPoints(triangles, ids, counts, averaged) {
+  for (var i = 0; i < averaged.length; i++) {
+    v2.set(averaged[i], 0, 0);
+  }
+
+  counts.fill(1);
+  for (var i = 0; i < ids.length; i++) {
+    for (var j = 0; j < 3; j++) {
+      var id = ids[i][j];
+      var current = averaged[id];
+      v2.sub(diff, triangles[i][j], current);
+      v2.scale(diff, diff, 1/counts[id]);
+      v2.add(current, current, diff);
+      counts[id]++;
+    }
+  }
+
+  for (var i = 0; i < triangles.length; i++) {
+    for (var j = 0; j < 3; j++) {
+      v2.copy(triangles[i][j], averaged[ids[i][j]]);
+    }
+  }
+}
+
+return { computeBodyNormals, collideBodyBody,
+  collideBodyPoint, segmentSprings, averageCommonPoints };
 
 })();
 
