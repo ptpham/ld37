@@ -25,13 +25,13 @@ body {
   <canvas id="main" width="800" height="600"></canvas>
 </body>
 
-<script src="renderer.js"></script>
+<script src="render.js"></script>
 <script src="default.vs"></script>
 <script src="default.fs"></script>
 
 <script>
 var mainCanvas = document.querySelector('#main');
-makeRenderer(mainCanvas).render();
+Render.makeDefault(mainCanvas).render();
 </script>
 </html>
 
