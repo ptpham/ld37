@@ -1,4 +1,4 @@
-var bodyGenerate = (function () {
+var body = (function () {
   var genders = ['M', 'F'];
   var prefixes = {
     M: ['Mr.', 'Sir', 'Grandpa', 'M.C.', 'Dr.', 'Brother'],
@@ -20,7 +20,7 @@ var bodyGenerate = (function () {
 
   var shapes = [
     {
-      id: 0,
+      asset: 'I',
       triangles: triangulateFromBlocks([[0, 0], [0, 1], [0, 2], [0, 3]]), // I
       outline: [[0, 0], [1, 0], [1, 4], [0, 4]],
       attachments: {
@@ -35,7 +35,7 @@ var bodyGenerate = (function () {
       },
     },
     {
-      id: 1,
+      asset: 'L',
       triangles: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [1, 2]]), // L
       outline: [[0, 0], [2, 0], [2, 3], [1, 3], [1, 1], [0, 1]],
       attachments: {
@@ -50,7 +50,7 @@ var bodyGenerate = (function () {
       },
     },
     {
-      id: 2,
+      asset: 'Z',
       triangles: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [2, 1]]), // Z
       outline: [[0, 0], [2, 0], [2, 1], [3, 1], [3, 2], [1, 2], [1, 1], [1, 0]],
       attachments: {
@@ -65,7 +65,7 @@ var bodyGenerate = (function () {
       },
     },
     {
-      id: 3,
+      asset: 'O',
       triangles: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [0, 1]]), // block
       outline: [[0, 0], [2, 0], [2, 2], [0, 2]],
       attachments: {
@@ -96,7 +96,7 @@ var bodyGenerate = (function () {
     return _.flatten(pointsPerBlock, true);
   }
 
-  return function bodyGenerate() {
+  function bodyGenerate() {
     var gender = _.sample(genders);
     var name = _.compact([
       _.sample(prefixes[gender]),
@@ -108,11 +108,14 @@ var bodyGenerate = (function () {
     return {
       gender: gender,
       name: name,
-      skin: _.sample([0, 1, 2]),
-      hair: _.sample([0, 1, 2]),
+      base: _.sample([0, 1, 2]),
       clothing: _.sample([0, 1, 2]),
       shape: _.sample(shapes),
       accessories: bodyAccessories,
     };
+  }
+
+  return {
+    generate: bodyGenerate,
   };
 })();
