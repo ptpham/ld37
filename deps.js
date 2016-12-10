@@ -10,4 +10,5 @@ createVAO = require('gl-vao');
 createFBO = require('gl-fbo');
 createShader = require('gl-shader');
 createTexture = require('gl-texture2d');
+createBuffer = require('gl-buffer');
 
