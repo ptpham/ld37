@@ -12,3 +12,5 @@ createShader = require('gl-shader');
 createTexture = require('gl-texture2d');
 createBuffer = require('gl-buffer');
 
+_ = require('lodash');
+
