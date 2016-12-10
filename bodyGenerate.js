@@ -23,21 +23,61 @@ var bodyGenerate = (function () {
       id: 0,
       triangles: triangulateFromBlocks([[0, 0], [0, 1], [0, 2], [0, 3]]), // I
       outline: [[0, 0], [1, 0], [1, 4], [0, 4]],
+      attachments: {
+        'hat': [0.5, 0],
+        'mustache': [0.5, 0.5],
+        'broach': [0.5, 1],
+        'cactus': [1, 2],
+        'cane': [0, 2],
+        'watch': [1, 3],
+        'bouquet': [0.5, 2],
+        'nose': [0.5, 0.5],
+      },
     },
     {
       id: 1,
       triangles: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [1, 2]]), // L
       outline: [[0, 0], [2, 0], [2, 3], [1, 3], [1, 1], [0, 1]],
+      attachments: {
+        'hat': [0, 0.5],
+        'mustache': [0.5, 0.5],
+        'broach': [1.5, 0.5],
+        'cactus': [2, 2],
+        'cane': [1, 2],
+        'watch': [2, 3],
+        'bouquet': [1.5, 2],
+        'nose': [0.5, 0.5],
+      },
     },
     {
       id: 2,
       triangles: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [2, 1]]), // Z
       outline: [[0, 0], [2, 0], [2, 1], [3, 1], [3, 2], [1, 2], [1, 1], [1, 0]],
+      attachments: {
+        'hat': [0, 0.5],
+        'mustache': [0.5, 0.5],
+        'broach': [1.5, 0.5],
+        'cactus': [2, 1],
+        'cane': [1, 1],
+        'watch': [2, 2],
+        'bouquet': [1.5, 1],
+        'nose': [0.5, 0.5],
+      },
     },
     {
       id: 3,
       triangles: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [0, 1]]), // block
       outline: [[0, 0], [2, 0], [2, 2], [0, 2]],
+      attachments: {
+        'hat': [1, 0],
+        'mustache': [1, 0.5],
+        'broach': [1, 1],
+        'cactus': [2, 1],
+        'cane': [0, 1],
+        'watch': [2, 1.5],
+        'bouquet': [1, 1.5],
+        'nose': [1, 0.5],
+      },
     },
   ];
 
