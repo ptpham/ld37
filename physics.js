@@ -100,25 +100,30 @@ function computeBodyNormals(result, triangles) {
 var diff = v2.create();
 var springDiffs = [v2.create(), v2.create(), v2.create()];
 function segmentSprings(triangles, lengths, alpha) {
-  if (alpha == 0) return;
-  alpha = alpha || 1;
+  for (var i = 0; i < springDiffs.length; i++) {
+    v2.set(springDiffs[i], 0, 0);
+  }
 
   for (var i = 0; i < triangles.length; i++) {
     var triangle = triangles[i];
 
-    for (var j = 0; j < triangle.length; j++) {
+    for (var j = 0; j < 3; j++) {
       var p0 = triangle[j];
       var p1 = triangle[(j+1)%3];
-      var diff = springDiffs[j];
 
       v2.sub(diff, p1, p0);
-      var delta = lengths[i] - v2.length(diff);
+      var current = v2.length(diff);
+      var delta = lengths[i][j] - current;
       v2.scale(diff, diff, alpha*delta/(4*lengths[i][j]));
 
       var spring0 = springDiffs[j];
       var spring1 = springDiffs[(j+1)%3];
       v2.sub(spring0, spring0, diff);
       v2.add(spring1, spring1, diff);
+    }
+
+    for (var j = 0; j < 3; j++) {
+      v3.add(triangles[i][j], triangles[i][j], springDiffs[j]);
     }
   }
 }
