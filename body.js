@@ -21,8 +21,7 @@ var body = (function () {
   var shapes = [
     {
       asset: 'I',
-      triangles: triangulateFromBlocks([[0, 0], [0, 1], [0, 2], [0, 3]]), // I
-      outline: [[0, 0], [1, 0], [1, 4], [0, 4]],
+      coords: triangulateFromBlocks([[0, 0], [0, 1], [0, 2], [0, 3]]), // I
       attachments: {
         'hat': [0.5, 0],
         'mustache': [0.5, 0.5],
@@ -36,8 +35,7 @@ var body = (function () {
     },
     {
       asset: 'L',
-      triangles: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [1, 2]]), // L
-      outline: [[0, 0], [2, 0], [2, 3], [1, 3], [1, 1], [0, 1]],
+      coords: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [1, 2]]), // L
       attachments: {
         'hat': [0, 0.5],
         'mustache': [0.5, 0.5],
@@ -51,8 +49,7 @@ var body = (function () {
     },
     {
       asset: 'Z',
-      triangles: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [2, 1]]), // Z
-      outline: [[0, 0], [2, 0], [2, 1], [3, 1], [3, 2], [1, 2], [1, 1], [1, 0]],
+      coords: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [2, 1]]), // Z
       attachments: {
         'hat': [0, 0.5],
         'mustache': [0.5, 0.5],
@@ -66,8 +63,7 @@ var body = (function () {
     },
     {
       asset: 'O',
-      triangles: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [0, 1]]), // block
-      outline: [[0, 0], [2, 0], [2, 2], [0, 2]],
+      coords: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [0, 1]]), // block
       attachments: {
         'hat': [1, 0],
         'mustache': [1, 0.5],
@@ -82,18 +78,41 @@ var body = (function () {
   ];
 
   function triangulateFromBlocks(blocks) {
+    var points = [];
+    var pointsMap = {};
+    var pointsMapIndex = 0;
+
+    function addPoint(point) {
+      var key = point[0] + '-' + point[1];
+      if (key in pointsMap) {
+        return pointsMap[key];
+      }
+
+      points.push(point);
+      pointsMap[key] = pointsMapIndex;
+      pointsMapIndex++;
+      return pointsMap[key];
+    }
+
     var pointsPerBlock = blocks.map(function (block) {
       return [
-        [block[0], block[1]],
-        [block[0] + 1, block[1]],
-        [block[0], block[1] + 1],
-        [block[0] + 1, block[1]],
-        [block[0] + 1, block[1] + 1],
-        [block[0], block[1] + 1],
+        [
+          addPoint([block[0], block[1]]),
+          addPoint([block[0] + 1, block[1]]),
+          addPoint([block[0], block[1] + 1]),
+        ],
+        [
+          addPoint([block[0] + 1, block[1]]),
+          addPoint([block[0] + 1, block[1] + 1]),
+          addPoint([block[0], block[1] + 1]),
+        ],
       ];
     });
 
-    return _.flatten(pointsPerBlock, true);
+    return {
+      triangles: _.flatten(pointsPerBlock, true),
+      points: points,
+    };
   }
 
   function bodyGenerate() {
