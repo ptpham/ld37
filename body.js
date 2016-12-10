@@ -108,8 +108,7 @@ var body = (function () {
     return {
       gender: gender,
       name: name,
-      skin: _.sample([0, 1, 2]),
-      hair: _.sample([0, 1, 2]),
+      base: _.sample([0, 1, 2]),
       clothing: _.sample([0, 1, 2]),
       shape: _.sample(shapes),
       accessories: bodyAccessories,
