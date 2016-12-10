@@ -28,19 +28,23 @@ function triangleSeparation(t0, n0, t1, n1) {
 }
 
 function trianglesMax(result, triangles) {
-  v2.copy(result, triangles[0]);
+  v2.copy(result, triangles[0][0]);
   for (var i = 1; i < triangles.length; i++) {
-    result[0] = Math.max(triangles[i][0], result[0]);
-    result[1] = Math.max(triangles[i][1], result[1]);
+    for (var j = 0; j < 3; j++) {
+      result[0] = Math.max(triangles[i][j][0], result[0]);
+      result[1] = Math.max(triangles[i][j][1], result[1]);
+    }
   }
   return result;
 }
 
 function trianglesMin(result, triangles) {
-  v2.copy(result, triangles[0]);
+  v2.copy(result, triangles[0][0]);
   for (var i = 1; i < triangles.length; i++) {
-    result[0] = Math.min(triangles[i][0], result[0]);
-    result[1] = Math.min(triangles[i][1], result[1]);
+    for (var j = 0; j < 3; j++) {
+      result[0] = Math.min(triangles[i][j][0], result[0]);
+      result[1] = Math.min(triangles[i][j][1], result[1]);
+    }
   }
   return result;
 }
@@ -65,6 +69,10 @@ function collideBodyBody(bt0, bn0, bt1, bn1) {
   }
 
   return false;
+}
+
+function resolveBodyBody(bt0, bn0, bt1, bn1) {
+
 }
 
 var fakeTriangle = [[]];
@@ -153,7 +161,8 @@ function averageCommonPoints(triangles, ids, counts, averaged) {
 }
 
 return { computeBodyNormals, collideBodyBody,
-  collideBodyPoint, segmentSprings, averageCommonPoints };
+  collideBodyPoint, segmentSprings, averageCommonPoints,
+  trianglesMin, trianglesMax };
 
 })();
 

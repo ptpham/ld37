@@ -7,8 +7,6 @@ function makeDefault(canvas) {
   var bodies = [];
   
   function addBody(ids, coords) {
-    var result = {};
-
     var positions = new Float32Array(_.chain(ids)
       .flatten().map(i => coords[i]).flatten().value());
     var points = _.times(positions.length/2, i => positions.subarray(2*i, 2*(i+1)));
@@ -26,7 +24,13 @@ function makeDefault(canvas) {
       normals, buffer, color, coords, counts });
   }
 
+  function getBodyBounds(id, min, max) {
+    Physics.trianglesMin(min, bodies[id].triangles);
+    Physics.trianglesMax(max, bodies[id].triangles);
+  }
+
   addBody([[0,1,2], [2,0,3]], [[100, 100], [200, 100], [200,200], [100,200]]);
+  addBody([[0,1,2], [2,0,3]], [[400, 400], [500, 400], [500,500], [400,500]]);
 
   var dragging = -1;
   var lastPoint = v2.create();
@@ -50,7 +54,7 @@ function makeDefault(canvas) {
     }
   });
 
-  canvas.addEventListener('mouseup', function(e) {
+  window.addEventListener('mouseup', function(e) {
     if (dragging != -1) {
       bodies[dragging].color = [1,0,0,1];
     }
@@ -79,6 +83,20 @@ function makeDefault(canvas) {
     requestAnimationFrame(render);
 
     for (var i = 0; i < bodies.length; i++) {
+      for (var j = 0; j < bodies.length; j++) {
+        if (i == j) continue; 
+
+        var value = 0;
+        if (Physics.collideBodyBody(bodies[i].triangles, bodies[i].normals,
+          bodies[j].triangles, bodies[j].normals)) {
+          value = 1;
+        }
+        bodies[i].color[2] = value;
+        bodies[j].color[2] = value;
+      }
+    }
+
+    for (var i = 0; i < bodies.length; i++) {
       var body = bodies[i];
       Physics.segmentSprings(body.triangles, body.lengths, 1);
       Physics.averageCommonPoints(body.triangles, body.ids, body.counts, body.coords);
@@ -91,17 +109,17 @@ function makeDefault(canvas) {
     shader.bind();
     shader.uniforms.viewport = [canvas.width, canvas.height];
     for (var i = 0; i < bodies.length; i++) {
-      var buffer = bodies[i].buffer;
-      buffer.bind(); 
+      var body = bodies[i];
+      body.buffer.bind(); 
+      gl.bufferData(gl.ARRAY_BUFFER, body.positions, gl.DYNAMIC_DRAW);
 
-      gl.bufferData(gl.ARRAY_BUFFER, bodies[i].positions, gl.DYNAMIC_DRAW);
       shader.attributes.position.pointer();
-      shader.uniforms.color = bodies[i].color;
-      gl.drawArrays(gl.TRIANGLES, 0, buffer.length / 8);
+      shader.uniforms.color = body.color;
+      gl.drawArrays(gl.TRIANGLES, 0, body.buffer.length / 8);
     }
   }
 
-  return { render };
+  return { render, addBody, getBodyBounds };
 }
 
 return { makeDefault };

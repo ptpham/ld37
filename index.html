@@ -34,7 +34,14 @@ body {
 
 <script>
 var mainCanvas = document.querySelector('#main');
-Render.makeDefault(mainCanvas).render();
+var renderer = Render.makeDefault(mainCanvas);
+renderer.render();
+
+var min = v2.create();
+var max = v2.create();
+renderer.getBodyBounds(0, min, max);
+console.log(min, max);
+
 </script>
 </html>
 
