@@ -18,11 +18,19 @@ var Body = (function () {
     'nose',
   ];
 
-  function generateTextureCoords(points, i, j) {
-    var vert = 2, horz = 3;
+  function generateTextureCoords(points, i, j, horz, vert) {
     var width = _.chain(points).map(0).max().value();
     var height = _.chain(points).map(1).max().value();
     return _.map(points, p => [(p[0]/width+i)/horz, (p[1]/height+j)/vert]);
+  }
+
+  function generateBodyTextureCoords(points, i, j) {
+    return generateTextureCoords(points, i, j, 3, 2);
+  }
+
+  function generateAccessoryTextureCoords(i, j) {
+    return generateTextureCoords([[0,0],[1,0],[0,1],[1,0],[1,1],[0,1]],
+      i, j, 1, accessories.length);
   }
 
   var shapes = [
@@ -160,15 +168,17 @@ var Body = (function () {
       _.sample(postfixes),
     ]).join(' ');
     var numAccessories = Math.ceil(Math.random() * 3);
-    var bodyAccessories = _.sample(accessories, numAccessories);
+    var accessoryIds = _.chain(accessories.length)
+      .times().shuffle().take(numAccessories).value();
 
     var shape = _.sample(shapes);
     var clothing = _.sample([0,1,2]);
     var base = _.sample([0,1,2]);
 
     var texcoords = {
-      base: generateTextureCoords(shape.coords.points, base, 0),
-      clothing: generateTextureCoords(shape.coords.points, clothing, 1)
+      base: generateBodyTextureCoords(shape.coords.points, base, 0),
+      clothing: generateBodyTextureCoords(shape.coords.points, clothing, 1),
+      accessories: _.map(accessoryIds, x => generateTextureCoords(0, x))
     };
 
     return {
@@ -178,7 +188,7 @@ var Body = (function () {
       clothing,
       shape,
       texcoords,
-      accessories: bodyAccessories,
+      accessories: _.map(accessoryIds, i => accessories[i]),
       freshness: 100,
     };
   }

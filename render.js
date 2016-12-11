@@ -4,10 +4,12 @@ Render = (function() {
 var NO_MASK_COLOR = [1,1,1,1];
 var COFFIN_MASK_COLOR = [1, 0.7, 0.7, 0.5];
 var WORLD_IDENTITY = m3.create();
+var AC_SIZE = 20;
 
 function makeDefault(canvas) {
   var gl = canvas.getContext('webgl');
   var shader = createShader(gl, VS_DEFAULT, FS_DEFAULT);
+  var squareBuffer = createBuffer(gl, _.map([0,0,1,0,0,1,0,1,1,1,1,0], x => AC_SIZE*x));
   var textures = {};
   var bodies = [];
 
@@ -17,15 +19,22 @@ function makeDefault(canvas) {
     }
   }
   
-  function addBody(ids, coords, texcoords, lines, shapeName) {
+  function addBody(ids, coordsBody, texcoords, lines, shapeName, attachPoints) {
     var positions = new Float32Array(_.chain(ids)
-      .flatten().map(i => coords[i]).flatten().value());
+      .flatten().map(i => coordsBody[i]).flatten().value());
     var points = _.times(positions.length/2, i => positions.subarray(2*i, 2*(i+1)));
-    coords = _.map(coords, x => new Float32Array(x));
+
+    coords = _.map(coordsBody.concat(attachPoints), x => new Float32Array(x));
+    var attachments = coords.slice(coords.length - attachPoints.length);
     var shifts = _.cloneDeep(coords);
 
     var triangles = _.times(points.length/3, i =>
       [points[3*i], points[3*i+1], points[3*i+2]]);
+
+    lines = _.concat(lines, _.chain(attachments).map((x,a) =>
+      _.chain(coordsBody.length).times().sortBy(i => v2.distance(x, coordsBody[i])).take(4)
+        .flatten().map(i => [coordsBody.length + a,i]).value()).flatten().value());
+
     var lengths = _.map(lines, x => v2.distance(coords[x[0]], coords[x[1]]));
     var normals = _.cloneDeep(triangles);
     var buffer = createBuffer(gl, positions);
@@ -37,8 +46,14 @@ function makeDefault(canvas) {
     Physics.computeBodyCenter(center, triangles);
     var distances = _.map(triangles, x => v2.distance(x, center));
 
-    texcoords = _.mapValues(texcoords, x =>
-      createBuffer(gl, _.chain(ids).flatten().map(i => x[i]).flatten().value()));
+    function makeTextureCoordBuffer(x) {
+      return createBuffer(gl, _.chain(ids).flatten().map(i => x[i]).flatten().value());
+    }
+
+    texcoords = _.mapValues(texcoords, (x,name) => {
+      if (name == 'accessories') return _.map(x, makeTextureCoordBuffer);
+      return makeTextureCoordBuffer(x);
+    });
     var texture = textures[shapeName];
 
     function getBounds(min, max) {
@@ -56,7 +71,7 @@ function makeDefault(canvas) {
 
     var result = { ids, positions, distances, points, shifts, triangles,
       lines, lengths, normals, buffer, color, coords, counts, distances,
-      center, texcoords, texture, getBounds, addShift
+      center, texcoords, texture, getBounds, addShift, attachments
     };
 
     bodies.push(result);
@@ -184,13 +199,14 @@ function makeDefault(canvas) {
       var body = bodies[i];
       body.buffer.bind(); 
       gl.bufferData(gl.ARRAY_BUFFER, body.positions, gl.DYNAMIC_DRAW);
-
       shader.attributes.position.pointer();
       shader.uniforms.color = body.color;
-      shader.uniforms.texture = body.texture.bind();
       
       var times = body.coffin ? 2 : 1;
       for (var j = 0; j < times; j++) {
+        body.buffer.bind(); 
+        shader.attributes.position.pointer();
+
         if (body.coffin && j == 0) {
           v2.sub(diff, body.coffin.center, body.center);
           shader.uniforms.world = m3.fromTranslation(world, diff);
@@ -200,6 +216,7 @@ function makeDefault(canvas) {
           shader.uniforms.mask = NO_MASK_COLOR;
         }
 
+        shader.uniforms.texture = body.texture.bind();
         body.texcoords.base.bind();
         shader.attributes.texcoord.pointer();
         gl.drawArrays(gl.TRIANGLES, 0, body.buffer.length / 8);
@@ -207,6 +224,21 @@ function makeDefault(canvas) {
         body.texcoords.clothing.bind();
         shader.attributes.texcoord.pointer();
         gl.drawArrays(gl.TRIANGLES, 0, body.buffer.length / 8);
+
+        var attachments = body.attachments;
+        shader.uniforms.texture = textures.accessories.bind();
+
+        body.buffer.unbind();
+        squareBuffer.bind(); 
+        shader.attributes.position.pointer();
+        for (var k = 0; k < attachments.length; k++) {
+          body.texcoords.accessories[k].bind();
+          shader.attributes.texcoord.pointer();
+
+          shader.uniforms.world = m3.fromTranslation(world, attachments[k]);
+          gl.drawArrays(gl.TRIANGLES, 0, squareBuffer.length / 8);
+        }
+        squareBuffer.unbind();
       }
     }
   }

@@ -33,6 +33,7 @@ img.texture {
   <img class="texture" name="L" src="assets/L-shape.png"></img>
   <img class="texture" name="O" src="assets/O-shape.png"></img>
   <img class="texture" name="Z" src="assets/Z-shape.png"></img>
+  <img class="texture" name="accessories" src="assets/accessories.png"></img>
 </body>
 
 <script src="assets.js"></script>
@@ -46,7 +47,7 @@ img.texture {
 var mainCanvas = document.querySelector('#main');
 var renderer = Render.makeDefault(mainCanvas);
 
-var TIME_TO_BODY = 15000;
+var TIME_TO_BODY = 1500;
 var TIME_TO_FUNERAL = 20000;
 var TIME_TO_FRESHNESS = 1000;
 var FREEZER_AREA = [[250, 0], [550, 600]];
@@ -104,15 +105,20 @@ function addNewBody() {
 
   var newBody = Body.generate();
   var shape = newBody.shape;
-  var pixelPoints = shape.coords.points
-    .map(function (point) {
-      var pixelPoints = [point[0] * 50, point[1] * 50];
-      pixelPoints[0] += stretcher[0][0];
-      pixelPoints[1] += stretcher[0][1];
-      return pixelPoints;
-    });
+
+  function stretchPoint(point) {
+    var pixelPoints = [point[0] * 50, point[1] * 50];
+    pixelPoints[0] += stretcher[0][0];
+    pixelPoints[1] += stretcher[0][1];
+    return pixelPoints;
+  }
+
+  var pixelPoints = shape.coords.points.map(stretchPoint);
+  var attachPoints = _.map(newBody.accessories,
+    x => stretchPoint(shape.attachments[x]));
+
   var created = renderer.addBody(shape.coords.triangles,
-    pixelPoints, newBody.texcoords, shape.coords.lines, shape.asset);
+    pixelPoints, newBody.texcoords, shape.coords.lines, shape.asset, attachPoints);
   bodiesWaiting.push(created);
   bodies.push(created);
 }

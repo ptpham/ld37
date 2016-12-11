@@ -135,6 +135,7 @@ function segmentSprings(lines, lengths, points, alpha, counts, shifts) {
     v2.set(shifts[i], 0, 0);
   }
 
+  var normalize = _.max(lengths);
   counts.fill(0);
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i];
@@ -144,7 +145,7 @@ function segmentSprings(lines, lengths, points, alpha, counts, shifts) {
     v2.sub(diff, p1, p0);
     var current = v2.length(diff);
     var delta = lengths[i] - current;
-    v2.scale(diff, diff, alpha*delta/(4*lengths[i]));
+    v2.scale(diff, diff, alpha*delta/(4*normalize));
 
     var shift0 = shifts[line[0]];
     var shift1 = shifts[line[1]];
@@ -155,6 +156,7 @@ function segmentSprings(lines, lengths, points, alpha, counts, shifts) {
   }
 
   for (var i = 0; i < shifts.length; i++) {
+    if (counts[i] == 0) continue;
     v2.scale(shifts[i], shifts[i], 1/counts[i]);
     v2.add(points[i], points[i], shifts[i]);
   }
