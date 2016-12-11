@@ -253,10 +253,14 @@ function update(time) {
 
 Sounds = {
   drags: _.times(3, i => new Audio(`assets/drag${i}.mp3`)),
-  sploosh: new Audio('assets/sploosh.mp3')
+  sploosh: new Audio('assets/sploosh.mp3'),
+  music: new Audio('assets/music.mp3')
 };
 
 window.addEventListener('load', function() {
+  Sounds.music.loop = true;
+  Sounds.music.volume = 0.1;
+  Sounds.music.play();
   renderer.prepareTextures();
   renderer.render();
   update();
@@ -266,7 +270,7 @@ var dragId = 0;
 window.addEventListener('body-drag', function(e) {
   var drag = Sounds.drags[dragId];
   dragId = (dragId + 1) % 3;
-  drag.volume = 0.05;
+  drag.volume = 0.1;
   drag.play();
 }, true);
 
