@@ -17,7 +17,7 @@ function makeDefault(canvas) {
     }
   }
   
-  function addBody(ids, coords, texcoords, lines, shapeName) {
+  function addBody(ids, coords, texcoords, lines, shapeName, data) {
     var positions = new Float32Array(_.chain(ids)
       .flatten().map(i => coords[i]).flatten().value());
     var points = _.times(positions.length/2, i => positions.subarray(2*i, 2*(i+1)));
@@ -56,7 +56,7 @@ function makeDefault(canvas) {
 
     var result = { ids, positions, distances, points, shifts, triangles,
       lines, lengths, normals, buffer, color, coords, counts, distances,
-      center, texcoords, texture, getBounds, addShift
+      center, texcoords, texture, getBounds, addShift, data
     };
 
     bodies.push(result);
@@ -79,8 +79,9 @@ function makeDefault(canvas) {
   var shiftAmount = v2.create();
 
   function extractEventPoint(result, e) {
-    result[0] = e.clientX - canvas.offsetLeft;
-    result[1] = canvas.offsetHeight - (e.clientY - canvas.offsetTop);
+    var parent = canvas.parentElement;
+    result[0] = e.clientX - parent.offsetLeft;
+    result[1] = parent.offsetHeight - (e.clientY - parent.offsetTop);
   }
 
   canvas.addEventListener('mousedown', function(e) {

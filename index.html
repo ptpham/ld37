@@ -14,12 +14,44 @@ body {
   justify-content: center;
 }
 
+#container {
+  position: relative;
+}
+
 #main {
   width: 800px;
   height: 600px;
   border: 1px solid black;
   background-image: url('assets/background.png');
   background-repeat: repeat-y;
+  cursor: pointer;
+}
+
+#speech {
+  position: absolute;
+  top: 0; left: 0;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+#speech > div {
+  position: absolute;
+  color: white;
+  background: rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  display: flex;
+  text-align: center;
+  font-size: 12px;
+  font-family: monospace;
+  max-width: 300px;
+  white-space: pre-wrap;
+  padding: 8px;
+  right: 10px;
+}
+
+#speech > div.hide {
+  display: none;
 }
 
 img.texture {
@@ -28,7 +60,11 @@ img.texture {
 </style>
 
 <body>
-  <canvas id="main" width="800" height="600"></canvas>
+  <div id="container">
+    <canvas id="main" width="800" height="600"></canvas>
+    <div id="speech" class="hide"></div>
+  </div>
+
   <img class="texture" name="I" src="assets/I-shape.png"></img>
   <img class="texture" name="L" src="assets/L-shape.png"></img>
   <img class="texture" name="O" src="assets/O-shape.png"></img>
@@ -39,6 +75,7 @@ img.texture {
 <script src="body.js"></script>
 <script src="physics.js"></script>
 <script src="render.js"></script>
+<script src="speech.js"></script>
 <script src="default.vs"></script>
 <script src="default.fs"></script>
 
@@ -76,6 +113,8 @@ var nextTimeToBody;
 var nextTimeToFuneral;
 var nextFreshnessCheck;
 
+Speech.initialize(coffinPositions);
+
 function getBodiesInArea(pointA, pointB) {
   var found = [];
   var min = v2.create();
@@ -112,7 +151,7 @@ function addNewBody() {
       return pixelPoints;
     });
   var created = renderer.addBody(shape.coords.triangles,
-    pixelPoints, newBody.texcoords, shape.coords.lines, shape.asset);
+    pixelPoints, newBody.texcoords, shape.coords.lines, shape.asset, newBody);
   bodiesWaiting.push(created);
   bodies.push(created);
 }
@@ -144,10 +183,10 @@ function checkCoffins() {
     var insideCoffin = getBodiesInArea(coffinPosition[0], coffinPosition[1]);
     if (!insideCoffin.length) return;
     if (insideCoffin[0] === requiredBody) {
-      console.log('Correct body!');
-      bodiesToRemove.push(insideCoffin[0]);
+      Speech.showCorrectPhrase(requiredBody.data, i);
+      bodiesToRemove.push(requiredBody);
     } else {
-      console.log('Incorrect body!');
+      Speech.showIncorrectPhrase(requiredBody.data, i);
     }
   });
   bodiesToRemove.forEach(removeBody);

@@ -161,6 +161,7 @@ var Body = (function () {
     ]).join(' ');
     var numAccessories = Math.ceil(Math.random() * 3);
     var bodyAccessories = _.sample(accessories, numAccessories);
+    if (!_.isArray(bodyAccessories)) bodyAccessories = [bodyAccessories];
 
     var shape = _.sample(shapes);
     var clothing = _.sample([0,1,2]);
