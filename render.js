@@ -2,7 +2,9 @@
 Render = (function() {
 
 var NO_MASK_COLOR = [1,1,1,1];
-var COFFIN_MASK_COLOR = [1, 0.7, 0.7, 0.5];
+var NO_TIN_COLOR = [0,0,0,0];
+var COFFIN_TINT_COLOR = [0.4,0,0,0];
+var COFFIN_MASK_COLOR = [1,1,1,0.5];
 var WORLD_IDENTITY = m3.create();
 var AC_SIZE = 20;
 
@@ -213,10 +215,12 @@ function makeDefault(canvas) {
           v2.sub(diff, body.coffin.center, body.center);
           shader.uniforms.world = m3.fromTranslation(world, diff);
           shader.uniforms.mask = COFFIN_MASK_COLOR;
+          shader.uniforms.tint = COFFIN_TINT_COLOR;
         } else {
           v2.set(diff, 0, 0);
           shader.uniforms.world = WORLD_IDENTITY;
           shader.uniforms.mask = NO_MASK_COLOR;
+          shader.uniforms.tint = NO_TINT_COLOR;
         }
 
         shader.uniforms.texture = body.texture.bind();
