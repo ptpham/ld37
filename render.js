@@ -71,36 +71,8 @@ function makeDefault(canvas) {
     dragging = -1;
   });
 
-  var draftShift = v2.create();
-  function shiftBody(body, point, amount, strength) {
-    var points = body.points;
-
-    for (var i = 0; i < points.length; i++) {
-      var target = points[i];
-      var weight = Math.exp(-v2.distance(target, point)/strength);
-      v2.scale(draftShift, amount, weight);
-      v2.add(target, target, draftShift);
-    }
-  }
-
   var diff = v2.create(), direction = v2.create();
   var min = v2.create(), max = v2.create();
-
-  function boundaryDampening(triangles, direction) {
-    Physics.trianglesMin(min, triangles);
-    Physics.trianglesMax(max, triangles);
-    
-    var dampening = 1;
-    if (min[1] < 0) {
-      dampening *= 1 - Math.max(0, v2.dot(direction, [0,-1]));
-    }
-
-    if (max[1] > canvas.height) {
-      dampening *= 1 - Math.max(0, v2.dot(direction, [0,1]));
-    }
-    return dampening;
-  }
-
   canvas.addEventListener('mousemove', function(e) {
     extractEventPoint(currentPoint, e);
     v2.sub(shiftAmount, currentPoint, lastPoint);
@@ -113,6 +85,8 @@ function makeDefault(canvas) {
       var affected = [body];
       Physics.trianglesMin(min, body.triangles);
       Physics.trianglesMax(max, body.triangles);
+      if (min[0] < 0 && direction[0] < 0) { shiftAmount[0] = 0; }
+      if (max[0] > canvas.width && direction[0] > 0) { shiftAmount[0] = 0; }
       if (min[1] < 0 && direction[1] < 0) { shiftAmount[1] = 0; }
       if (max[1] > canvas.height && direction[1] > 0) { shiftAmount[1] = 0; }
 
@@ -123,7 +97,8 @@ function makeDefault(canvas) {
 
         if (Physics.collideBodyBody(body.triangles, body.normals,
           other.triangles, other.normals)) {
-          dampening *= boundaryDampening(other.triangles, direction);
+          dampening *= Physics.boundaryDampening(other.triangles,
+            direction, canvas.width, canvas.height);
 
           v2.sub(diff, other.center, body.center);
           v2.normalize(diff, diff);
@@ -138,7 +113,7 @@ function makeDefault(canvas) {
 
       var strength = 100*dampening;
       for (var i = 0; i < affected.length; i++) {
-        shiftBody(affected[i], currentPoint, shiftAmount, strength);
+        Physics.shiftBody(affected[i].points, currentPoint, shiftAmount, strength);
       }
     }
     v2.copy(lastPoint, currentPoint);
