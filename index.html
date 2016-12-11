@@ -120,7 +120,7 @@ function addNewBody() {
 function removeBody(body) {
   var index = _.indexOf(bodies, body);
   if (index > -1) {
-    renderer.removeBody(index);
+    renderer.removeBody(body);
     bodies.splice(index, 1);
   }
 
@@ -142,7 +142,7 @@ function checkCoffins() {
     if (!insideCoffin.length) return;
     if (insideCoffin[0] === requiredBody) {
       console.log('Correct body!');
-      removeBody(bodies[insideCoffin[0]]);
+      removeBody(insideCoffin[0]);
     } else {
       console.log('Incorrect body!');
     }
