@@ -26,9 +26,9 @@ body {
 </body>
 
 <script src="assets.js"></script>
+<script src="body.js"></script>
 <script src="physics.js"></script>
 <script src="render.js"></script>
-<script src="body.js"></script>
 <script src="default.vs"></script>
 <script src="default.fs"></script>
 
@@ -41,6 +41,30 @@ var min = v2.create();
 var max = v2.create();
 renderer.getBodyBounds(0, min, max);
 console.log(min, max);
+
+var TIME_TO_BODY = 10000;
+var TIME_TO_FUNERAL = 15000;
+var FREEZER_AREA = [[250, 0], [550, 600]];
+
+var nextTimeToBody = 0;
+var nextTimeToFuneral = 15000;
+
+var bodies = [];
+var currentTime = 0;
+
+function update(time) {
+  if (currentTime) {
+    if (currentTime >= nextTimeToBody) {
+      bodies.push(body.generate());
+      nextTimeToBody = currentTime + TIME_TO_BODY;
+    }
+  }
+
+  currentTime = time;
+  requestAnimationFrame(update);
+}
+
+update();
 
 </script>
 </html>
