@@ -28,29 +28,29 @@ var Body = (function () {
   var shapes = [
     {
       asset: 'I',
-      coords: triangulateFromBlocks([[0, 0], [0, 1], [0, 2], [0, 3]]), // I
+      coords: triangulateFromBlocks([[0, 0], [1, 0], [2, 0], [3, 0]]), // I
       attachments: {
-        'hat': [0.5, 0],
+        'hat': [0, 0.5],
         'mustache': [0.5, 0.5],
-        'broach': [0.5, 1],
-        'cactus': [1, 2],
-        'cane': [0, 2],
-        'watch': [1, 3],
-        'bouquet': [0.5, 2],
+        'broach': [1, 0.5],
+        'cactus': [2, 1],
+        'cane': [2, 0],
+        'watch': [3, 1],
+        'bouquet': [2, 0.5],
         'nose': [0.5, 0.5],
       },
     },
     {
       asset: 'L',
-      coords: triangulateFromBlocks([[0, 0], [1, 0], [1, 1], [1, 2]]), // L
+      coords: triangulateFromBlocks([[0, 0], [0, 1], [1, 1], [2, 1]]), // L
       attachments: {
         'hat': [0, 0.5],
         'mustache': [0.5, 0.5],
-        'broach': [1.5, 0.5],
+        'broach': [1.5, 1.5],
         'cactus': [2, 2],
         'cane': [1, 2],
-        'watch': [2, 3],
-        'bouquet': [1.5, 2],
+        'watch': [2, 1],
+        'bouquet': [1.5, 1.5],
         'nose': [0.5, 0.5],
       },
     },

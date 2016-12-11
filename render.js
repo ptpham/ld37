@@ -126,7 +126,7 @@ function makeDefault(canvas) {
         }
       }
 
-      var strength = 100*dampening;
+      var strength = 350*dampening;
       for (var i = 0; i < affected.length; i++) {
         Physics.shiftBody(affected[i].points, currentPoint, shiftAmount, strength);
       }
