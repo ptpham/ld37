@@ -43,6 +43,10 @@ function makeDefault(canvas) {
     });
   }
 
+  function removeBody(id) {
+    return bodies.splice(id, 1);
+  }
+
   function getBodyBounds(id, min, max) {
     Physics.trianglesMin(min, bodies[id].triangles);
     Physics.trianglesMax(max, bodies[id].triangles);
@@ -178,7 +182,7 @@ function makeDefault(canvas) {
     }
   }
 
-  return { render, addBody, getBodyBounds, prepareTextures };
+  return { render, addBody, removeBody, getBodyBounds, prepareTextures };
 }
 
 return { makeDefault };

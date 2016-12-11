@@ -117,6 +117,24 @@ function addNewBody() {
     pixelPoints, newBody.texcoords, shape.coords.lines, shape.asset);
 }
 
+function removeBody(body) {
+  var index = _.indexOf(bodies, body);
+  if (index > -1) {
+    renderer.removeBody(index);
+    bodies.splice(index, 1);
+  }
+
+  var waitingIndex = _.indexOf(bodiesWaiting, body);
+  if (waitingIndex > -1) {
+    bodiesWaiting.splice(waitingIndex, 1);
+  }
+
+  var coffinIndex = _.indexOf(coffins, body);
+  if (coffinIndex > -1) {
+    coffins.splice(coffinIndex, 1);
+  }
+}
+
 function checkCoffins() {
   coffins.forEach(function (requiredBody, i) {
     var coffinPosition = coffinPositions[i];
@@ -124,6 +142,7 @@ function checkCoffins() {
     if (!insideCoffin.length) return;
     if (bodies[insideCoffin[0]] === requiredBody) {
       console.log('Correct body!');
+      removeBody(bodies[insideCoffin[0]]);
     } else {
       console.log('Incorrect body!');
     }
