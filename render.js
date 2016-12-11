@@ -21,7 +21,7 @@ function makeDefault(canvas) {
     }
   }
   
-  function addBody(ids, coordsBody, texcoords, lines, shapeName, attachPoints) {
+  function addBody(ids, coordsBody, texcoords, lines, shapeName, attachPoints, data) {
     var positions = new Float32Array(_.chain(ids)
       .flatten().map(i => coordsBody[i]).flatten().value());
     var points = _.times(positions.length/2, i => positions.subarray(2*i, 2*(i+1)));
@@ -73,7 +73,7 @@ function makeDefault(canvas) {
 
     var result = { ids, positions, distances, points, shifts, triangles,
       lines, lengths, normals, buffer, color, coords, counts, distances,
-      center, texcoords, texture, getBounds, addShift, attachments
+      center, texcoords, texture, getBounds, addShift, attachments, data
     };
 
     bodies.push(result);

@@ -157,7 +157,7 @@ function addNewBody() {
     x => stretchPoint(shape.attachments[x]));
 
   var created = renderer.addBody(shape.coords.triangles,
-    pixelPoints, newBody.texcoords, shape.coords.lines, shape.asset, attachPoints);
+    pixelPoints, newBody.texcoords, shape.coords.lines, shape.asset, attachPoints, newBody);
   bodiesWaiting.push(created);
   bodies.push(created);
 }
