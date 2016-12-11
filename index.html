@@ -82,12 +82,12 @@ function getBodiesInArea(pointA, pointB) {
   var max = v2.create();
 
   bodies.forEach(function (body, i) {
-    renderer.getBodyBounds(i, min, max);
+    body.getBounds(min, max);
 
     var notXContained = max[0] < pointA[0] || min[0] > pointB[0];
     var notYContained = max[1] < pointA[1] || min[1] > pointB[1];
 
-    if (!notXContained && !notYContained) found.push(i);
+    if (!notXContained && !notYContained) found.push(body);
   });
   return found;
 }
@@ -111,16 +111,16 @@ function addNewBody() {
       pixelPoints[1] += stretcher[0][1];
       return pixelPoints;
     });
-  bodies.push(newBody);
-  bodiesWaiting.push(newBody);
-  renderer.addBody(shape.coords.triangles,
+  var created = renderer.addBody(shape.coords.triangles,
     pixelPoints, newBody.texcoords, shape.coords.lines, shape.asset);
+  bodiesWaiting.push(created);
+  bodies.push(created);
 }
 
 function removeBody(body) {
   var index = _.indexOf(bodies, body);
   if (index > -1) {
-    renderer.removeBody(index);
+    renderer.removeBody(body);
     bodies.splice(index, 1);
   }
 
@@ -140,9 +140,9 @@ function checkCoffins() {
     var coffinPosition = coffinPositions[i];
     var insideCoffin = getBodiesInArea(coffinPosition[0], coffinPosition[1]);
     if (!insideCoffin.length) return;
-    if (bodies[insideCoffin[0]] === requiredBody) {
+    if (insideCoffin[0] === requiredBody) {
       console.log('Correct body!');
-      removeBody(bodies[insideCoffin[0]]);
+      removeBody(insideCoffin[0]);
     } else {
       console.log('Incorrect body!');
     }
@@ -151,9 +151,7 @@ function checkCoffins() {
 
 function updateFreshness() {
   var insideFreezer = new Set(getBodiesInArea(FREEZER_AREA[0], FREEZER_AREA[1]));
-  bodies.forEach(function (body, i) {
-    if (!insideFreezer.has(i)) body.freshness -= 1;
-  });
+  insideFreezer.forEach(body => body.freshness -= 1);
 }
 
 function update(time) {
