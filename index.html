@@ -26,9 +26,9 @@ body {
 </body>
 
 <script src="assets.js"></script>
+<script src="body.js"></script>
 <script src="physics.js"></script>
 <script src="render.js"></script>
-<script src="body.js"></script>
 <script src="default.vs"></script>
 <script src="default.fs"></script>
 
@@ -41,6 +41,49 @@ var min = v2.create();
 var max = v2.create();
 renderer.getBodyBounds(0, min, max);
 console.log(min, max);
+
+var TIME_TO_BODY = 5000;
+var TIME_TO_FUNERAL = 10000;
+var FREEZER_AREA = [[250, 0], [550, 600]];
+
+var bodies = [];
+var bodiesWaiting = [];
+var coffins = [];
+var currentTime = 0;
+
+var nextTimeToBody;
+var nextTimeToFuneral;
+
+function unitToPixels(point) {
+  return [point[0] * 50, point[1] * 50];
+}
+
+function update(time) {
+  if (currentTime) {
+    if (currentTime >= nextTimeToBody) {
+      var newBody = body.generate();
+      var shape = newBody.shape;
+      bodies.push(newBody);
+      bodiesWaiting.push(newBody);
+      renderer.addBody(shape.coords.triangles, shape.coords.points.map(unitToPixels));
+      nextTimeToBody = currentTime + TIME_TO_BODY;
+    }
+
+    if (currentTime >= nextTimeToFuneral) {
+      bodiesWaiting = _.shuffle(bodiesWaiting);
+      coffins.push(bodiesWaiting.pop());
+      nextTimeToFuneral = currentTime + TIME_TO_FUNERAL;
+    }
+  } else {
+    nextTimeToBody = time + 1000;
+    nextTimeToFuneral = time + TIME_TO_FUNERAL;
+  }
+
+  currentTime = time;
+  requestAnimationFrame(update);
+}
+
+update();
 
 </script>
 </html>
