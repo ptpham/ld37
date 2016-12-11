@@ -65,7 +65,8 @@ function update(time) {
       var shape = newBody.shape;
       bodies.push(newBody);
       bodiesWaiting.push(newBody);
-      renderer.addBody(shape.coords.triangles, shape.coords.points.map(unitToPixels));
+      renderer.addBody(shape.coords.triangles,
+        shape.coords.points.map(unitToPixels), shape.coords.lines);
       nextTimeToBody = currentTime + TIME_TO_BODY;
     }
 

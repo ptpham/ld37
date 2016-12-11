@@ -109,8 +109,38 @@ var body = (function () {
       ];
     });
 
+    var lines = blocks.map(function(block) {
+      return [
+        [
+          addPoint([block[0], block[1]]),
+          addPoint([block[0] + 1, block[1]]),
+        ],
+        [
+          addPoint([block[0], block[1]]),
+          addPoint([block[0], block[1] + 1]),
+        ],
+        [
+          addPoint([block[0], block[1]]),
+          addPoint([block[0] + 1, block[1] + 1]),
+        ],
+        [
+          addPoint([block[0], block[1] + 1]),
+          addPoint([block[0] + 1, block[1]]),
+        ],
+        [
+          addPoint([block[0] + 1, block[1]]),
+          addPoint([block[0] + 1, block[1] + 1]),
+        ],
+        [
+          addPoint([block[0], block[1] + 1]),
+          addPoint([block[0] + 1, block[1] + 1]),
+        ]
+      ];
+    });
+
     return {
       triangles: _.flatten(pointsPerBlock, true),
+      lines: _.flatten(lines),
       points: points,
     };
   }

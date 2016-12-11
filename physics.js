@@ -130,63 +130,56 @@ function computeTriangleCenters(result, triangles) {
 }
 
 var diff = v2.create();
-var springDiffs = [v2.create(), v2.create(), v2.create()];
-function segmentSprings(triangles, lengths, alpha) {
-  for (var i = 0; i < springDiffs.length; i++) {
-    v2.set(springDiffs[i], 0, 0);
+function segmentSprings(lines, lengths, points, alpha, counts, shifts) {
+  for (var i = 0; i < shifts.length; i++) {
+    v2.set(shifts[i], 0, 0);
   }
 
+  counts.fill(0);
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    var p0 = points[line[0]];
+    var p1 = points[line[1]];
+
+    v2.sub(diff, p1, p0);
+    var current = v2.length(diff);
+    var delta = lengths[i] - current;
+    v2.scale(diff, diff, alpha*delta/(4*lengths[i]));
+
+    var shift0 = shifts[line[0]];
+    var shift1 = shifts[line[1]];
+    v2.sub(shift0, shift0, diff);
+    v2.add(shift1, shift1, diff);
+    counts[line[0]]++;
+    counts[line[1]]++;
+  }
+
+  for (var i = 0; i < shifts.length; i++) {
+    v2.scale(shifts[i], shifts[i], 1/counts[i]);
+    v2.add(points[i], points[i], shifts[i]);
+  }
+}
+
+function replicateCommonPoints(triangles, ids, common) {
   for (var i = 0; i < triangles.length; i++) {
-    var triangle = triangles[i];
-
     for (var j = 0; j < 3; j++) {
-      var p0 = triangle[j];
-      var p1 = triangle[(j+1)%3];
-
-      v2.sub(diff, p1, p0);
-      var current = v2.length(diff);
-      var delta = lengths[i][j] - current;
-      v2.scale(diff, diff, alpha*delta/(4*lengths[i][j]));
-
-      var spring0 = springDiffs[j];
-      var spring1 = springDiffs[(j+1)%3];
-      v2.sub(spring0, spring0, diff);
-      v2.add(spring1, spring1, diff);
-    }
-
-    for (var j = 0; j < 3; j++) {
-      v3.add(triangles[i][j], triangles[i][j], springDiffs[j]);
+      v2.copy(triangles[i][j], common[ids[i][j]]);
     }
   }
 }
 
-function averageCommonPoints(triangles, ids, counts, averaged) {
-  for (var i = 0; i < averaged.length; i++) {
-    v2.set(averaged[i], 0, 0);
-  }
-
-  counts.fill(1);
+function extractCommonPoints(triangles, ids, common) {
   for (var i = 0; i < ids.length; i++) {
     for (var j = 0; j < 3; j++) {
-      var id = ids[i][j];
-      var current = averaged[id];
-      v2.sub(diff, triangles[i][j], current);
-      v2.scale(diff, diff, 1/counts[id]);
-      v2.add(current, current, diff);
-      counts[id]++;
-    }
-  }
-
-  for (var i = 0; i < triangles.length; i++) {
-    for (var j = 0; j < 3; j++) {
-      v2.copy(triangles[i][j], averaged[ids[i][j]]);
+      v2.copy(common[ids[i][j]], triangles[i][j]);
     }
   }
 }
 
 return { computeBodyNormals, computeTriangleCenters,
   computeBodyCenter, collideBodyBody, collideBodyPoint,
-  segmentSprings, averageCommonPoints, trianglesMin, trianglesMax };
+  segmentSprings, extractCommonPoints, replicateCommonPoints,
+  trianglesMin, trianglesMax };
 
 })();
 

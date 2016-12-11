@@ -6,16 +6,16 @@ function makeDefault(canvas) {
   var shader = createShader(gl, VS_DEFAULT, FS_DEFAULT);
   var bodies = [];
   
-  function addBody(ids, coords) {
+  function addBody(ids, coords, lines) {
     var positions = new Float32Array(_.chain(ids)
       .flatten().map(i => coords[i]).flatten().value());
     var points = _.times(positions.length/2, i => positions.subarray(2*i, 2*(i+1)));
-    var shifts = _.cloneDeep(points);
+    coords = _.map(coords, x => new Float32Array(x));
+    var shifts = _.cloneDeep(coords);
 
     var triangles = _.times(points.length/3, i =>
       [points[3*i], points[3*i+1], points[3*i+2]]);
-    var lengths = _.map(triangles, x =>
-      _.times(3, i => v2.distance(x[i], x[(i+1)%3])));
+    var lengths = _.map(lines, x => v2.distance(coords[x[0]], coords[x[1]]));
     var normals = _.cloneDeep(triangles);
     var buffer = createBuffer(gl, positions);
     var color = [1,0,0,1];
@@ -23,8 +23,13 @@ function makeDefault(canvas) {
     var counts = new Float32Array(coords.length);
     var center = v2.create();
 
-    bodies.push({ ids, positions, points, shifts, triangles, lengths,
-      normals, buffer, color, coords, counts, center });
+    Physics.computeBodyCenter(center, triangles);
+    var distances = _.map(triangles, x => v2.distance(x, center));
+
+    bodies.push({ ids, positions, distances, points, shifts, triangles,
+      lines, lengths, normals, buffer, color, coords, counts, distances,
+      center
+    });
   }
 
   function getBodyBounds(id, min, max) {
@@ -32,8 +37,10 @@ function makeDefault(canvas) {
     Physics.trianglesMax(max, bodies[id].triangles);
   }
 
-  addBody([[0,1,2], [2,0,3]], [[100, 100], [200, 100], [200,200], [100,200]]);
-  addBody([[0,1,2], [2,0,3]], [[210, 210], [300, 210], [300,300], [210,300]]);
+  addBody([[0,1,2], [2,0,3]], [[100, 100], [200, 100], [200,200], [100,200]],
+    [[0,1], [1,2],[2,0], [2,3], [3,0], [1,3]]);
+  addBody([[0,1,2], [2,0,3]], [[210, 210], [300, 210], [300,300], [210,300]],
+    [[0,1], [1,2],[2,0], [2,3], [3,0], [1,3]]);
 
   var dragging = -1;
   var lastPoint = v2.create();
@@ -64,15 +71,15 @@ function makeDefault(canvas) {
     dragging = -1;
   });
 
+  var draftShift = v2.create();
   function shiftBody(body, point, amount, strength) {
     var points = body.points;
-    var shifts = body.shifts;
 
     for (var i = 0; i < points.length; i++) {
       var target = points[i];
       var weight = Math.exp(-v2.distance(target, point)/strength);
-      v2.scale(shifts[i], amount, weight);
-      v2.add(target, target, shifts[i]);
+      v2.scale(draftShift, amount, weight);
+      v2.add(target, target, draftShift);
     }
   }
 
@@ -122,30 +129,18 @@ function makeDefault(canvas) {
 
   function render() {
     requestAnimationFrame(render);
-    recomputeBodies();
-
-    for (var i = 0; i < bodies.length; i++) {
-      for (var j = 0; j < bodies.length; j++) {
-        if (i == j) continue; 
-
-        var value = 0;
-        var bti = bodies[i].triangles;
-        var bni = bodies[i].normals;
-        var btj = bodies[j].triangles;
-        var bnj = bodies[j].normals;
-
-        if (Physics.collideBodyBody(bti, bni, btj, bnj)) value = 1;
-        bodies[i].color[2] = value;
-        bodies[j].color[2] = value;
-      }
-    }
-
     for (var i = 0; i < bodies.length; i++) {
       var body = bodies[i];
-      Physics.segmentSprings(body.triangles, body.lengths, 1);
-      Physics.averageCommonPoints(body.triangles, body.ids, body.counts, body.coords);
-    }
 
+      var triangles = body.triangles;
+      var coords = body.coords;
+      var ids = body.ids;
+
+      Physics.extractCommonPoints(triangles, ids, coords);
+      Physics.segmentSprings(body.lines, body.lengths, coords,
+        1, body.counts, body.shifts);
+      Physics.replicateCommonPoints(triangles, ids, coords);
+    }
     recomputeBodies();
 
     shader.bind();
