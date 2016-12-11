@@ -37,24 +37,31 @@ function makeDefault(canvas) {
       createBuffer(gl, _.chain(ids).flatten().map(i => x[i]).flatten().value()));
     var texture = textures[shapeName];
 
-    bodies.push({ ids, positions, distances, points, shifts, triangles,
-      lines, lengths, normals, buffer, color, coords, counts, distances,
-      center, texcoords, texture
-    });
-  }
+    function getBounds(min, max) {
+      Physics.trianglesMin(min, triangles);
+      Physics.trianglesMax(max, triangles);
+    }
 
-  function getBodyBounds(id, min, max) {
-    Physics.trianglesMin(min, bodies[id].triangles);
-    Physics.trianglesMax(max, bodies[id].triangles);
-  }
-
-  function shiftBody(id, shift) {
-    var triangles = bodies[id].triangles;
-    for (var i = 0; i < triangles.length; i++) {
-      for (var j = 0; j < 3; j++) {
-        v2.add(triangles[i][j], triangles[i][j], shift);
+    function addShift(shift) {
+      for (var i = 0; i < triangles.length; i++) {
+        for (var j = 0; j < 3; j++) {
+          v2.add(triangles[i][j], triangles[i][j], shift);
+        }
       }
     }
+
+    var result = { ids, positions, distances, points, shifts, triangles,
+      lines, lengths, normals, buffer, color, coords, counts, distances,
+      center, texcoords, texture, getBounds, addShift
+    };
+
+    bodies.push(result);
+    return result;
+  }
+
+  function removeBody(body) {
+    var index = bodies.indexOf(body);
+    if (index != -1) bodies.splice(index, 1);
   }
 
   function addTestBody() {
@@ -187,7 +194,7 @@ function makeDefault(canvas) {
     }
   }
 
-  return { render, addBody, getBodyBounds, shiftBody, prepareTextures };
+  return { render, addBody, prepareTextures };
 }
 
 return { makeDefault };
