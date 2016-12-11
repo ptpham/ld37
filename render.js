@@ -94,8 +94,9 @@ function makeDefault(canvas) {
   var shiftAmount = v2.create();
 
   function extractEventPoint(result, e) {
-    result[0] = e.clientX - canvas.offsetLeft;
-    result[1] = canvas.offsetHeight - (e.clientY - canvas.offsetTop);
+    var parent = canvas.parentElement;
+    result[0] = e.clientX - parent.offsetLeft;
+    result[1] = parent.offsetHeight - (e.clientY - parent.offsetTop);
   }
 
   canvas.addEventListener('mousedown', function(e) {
