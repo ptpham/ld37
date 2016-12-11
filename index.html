@@ -42,22 +42,35 @@ var max = v2.create();
 renderer.getBodyBounds(0, min, max);
 console.log(min, max);
 
-var TIME_TO_BODY = 10000;
-var TIME_TO_FUNERAL = 15000;
+var TIME_TO_BODY = 5000;
+var TIME_TO_FUNERAL = 10000;
 var FREEZER_AREA = [[250, 0], [550, 600]];
 
-var nextTimeToBody = 0;
-var nextTimeToFuneral = 15000;
-
 var bodies = [];
+var bodiesWaiting = [];
+var coffins = [];
 var currentTime = 0;
+
+var nextTimeToBody;
+var nextTimeToFuneral;
 
 function update(time) {
   if (currentTime) {
     if (currentTime >= nextTimeToBody) {
-      bodies.push(body.generate());
+      var newBody = body.generate();
+      bodies.push(newBody);
+      bodiesWaiting.push(newBody);
       nextTimeToBody = currentTime + TIME_TO_BODY;
     }
+
+    if (currentTime >= nextTimeToFuneral) {
+      bodiesWaiting = _.shuffle(bodiesWaiting);
+      coffins.push(bodiesWaiting.pop());
+      nextTimeToFuneral = currentTime + TIME_TO_FUNERAL;
+    }
+  } else {
+    nextTimeToBody = time + 1000;
+    nextTimeToFuneral = time + TIME_TO_FUNERAL;
   }
 
   currentTime = time;

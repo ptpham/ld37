@@ -131,6 +131,7 @@ var body = (function () {
       clothing: _.sample([0, 1, 2]),
       shape: _.sample(shapes),
       accessories: bodyAccessories,
+      freshness: 100,
     };
   }
 
