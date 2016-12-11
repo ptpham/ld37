@@ -138,6 +138,8 @@ function removeBody(body) {
 function checkCoffins() {
   var bodiesToRemove = [];
   coffins.forEach(function (requiredBody, i) {
+    if (requiredBody == null) return;
+
     var coffinPosition = coffinPositions[i];
     var insideCoffin = getBodiesInArea(coffinPosition[0], coffinPosition[1]);
     if (!insideCoffin.length) return;
@@ -156,6 +158,23 @@ function updateFreshness() {
   insideFreezer.forEach(body => body.freshness -= 1);
 }
 
+function addCoffinForBody(body) {
+  var coffinIndex = _.chain(coffinPositions.length).times()
+    .filter(i => coffins[i] == null).sample().value();
+  if (coffinIndex == null) return false;
+
+  var pos = coffinPositions[coffinIndex];
+  var center = v2.create();
+  v2.add(center, pos[0], pos[1]);
+  v2.scale(center, center, 0.5);
+
+  body.coffin = {
+    center
+  };
+  coffins[coffinIndex] = body;
+  return true;
+}
+
 function update(time) {
   if (currentTime) {
     if (currentTime >= nextTimeToBody) {
@@ -165,7 +184,9 @@ function update(time) {
 
     if (currentTime >= nextTimeToFuneral && bodiesWaiting.length) {
       bodiesWaiting = _.shuffle(bodiesWaiting);
-      coffins.push(bodiesWaiting.pop());
+      if (addCoffinForBody(_.last(bodiesWaiting))) {
+        bodiesWaiting.pop();
+      }
       nextTimeToFuneral = currentTime + TIME_TO_FUNERAL;
     }
 
