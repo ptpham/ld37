@@ -21,10 +21,18 @@ body {
   background-image: url('assets/background.png');
   background-repeat: repeat-y;
 }
+
+img.texture {
+  display: none;
+}
 </style>
 
 <body>
   <canvas id="main" width="800" height="600"></canvas>
+  <img class="texture" name="I" src="assets/I-shape.png"></img>
+  <img class="texture" name="L" src="assets/L-shape.png"></img>
+  <img class="texture" name="O" src="assets/O-shape.png"></img>
+  <img class="texture" name="Z" src="assets/Z-shape.png"></img>
 </body>
 
 <script src="assets.js"></script>
@@ -37,7 +45,6 @@ body {
 <script>
 var mainCanvas = document.querySelector('#main');
 var renderer = Render.makeDefault(mainCanvas);
-renderer.render();
 
 var TIME_TO_BODY = 5000;
 var TIME_TO_FUNERAL = 10000;
@@ -106,7 +113,8 @@ function addNewBody() {
     });
   bodies.push(newBody);
   bodiesWaiting.push(newBody);
-  renderer.addBody(shape.coords.triangles, pixelPoints, shape.coords.lines);
+  renderer.addBody(shape.coords.triangles,
+    pixelPoints, newBody.texcoords, shape.coords.lines, shape.asset);
 }
 
 function checkCoffins() {
@@ -158,7 +166,11 @@ function update(time) {
   requestAnimationFrame(update);
 }
 
-update();
+window.addEventListener('load', function() {
+  renderer.prepareTextures();
+  renderer.render();
+  update();
+});
 
 </script>
 </html>

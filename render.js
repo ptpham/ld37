@@ -4,9 +4,16 @@ Render = (function() {
 function makeDefault(canvas) {
   var gl = canvas.getContext('webgl');
   var shader = createShader(gl, VS_DEFAULT, FS_DEFAULT);
+  var textures = {};
   var bodies = [];
+
+  function prepareTextures() {
+    for (var img of document.querySelectorAll('img.texture')) {
+      textures[img.getAttribute('name')] = createTexture(gl, img);
+    }
+  }
   
-  function addBody(ids, coords, lines) {
+  function addBody(ids, coords, texcoords, lines, shapeName) {
     var positions = new Float32Array(_.chain(ids)
       .flatten().map(i => coords[i]).flatten().value());
     var points = _.times(positions.length/2, i => positions.subarray(2*i, 2*(i+1)));
@@ -26,9 +33,13 @@ function makeDefault(canvas) {
     Physics.computeBodyCenter(center, triangles);
     var distances = _.map(triangles, x => v2.distance(x, center));
 
+    texcoords = _.mapValues(texcoords, x =>
+      createBuffer(gl, _.chain(ids).flatten().map(i => x[i]).flatten().value()));
+    var texture = textures[shapeName];
+
     bodies.push({ ids, positions, distances, points, shifts, triangles,
       lines, lengths, normals, buffer, color, coords, counts, distances,
-      center
+      center, texcoords, texture
     });
   }
 
@@ -128,6 +139,10 @@ function makeDefault(canvas) {
 
   function render() {
     requestAnimationFrame(render);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
     for (var i = 0; i < bodies.length; i++) {
       var body = bodies[i];
 
@@ -151,11 +166,19 @@ function makeDefault(canvas) {
 
       shader.attributes.position.pointer();
       shader.uniforms.color = body.color;
+      shader.uniforms.texture = body.texture.bind();
+
+      body.texcoords.base.bind();
+      shader.attributes.texcoord.pointer();
+      gl.drawArrays(gl.TRIANGLES, 0, body.buffer.length / 8);
+
+      body.texcoords.clothing.bind();
+      shader.attributes.texcoord.pointer();
       gl.drawArrays(gl.TRIANGLES, 0, body.buffer.length / 8);
     }
   }
 
-  return { render, addBody, getBodyBounds };
+  return { render, addBody, getBodyBounds, prepareTextures };
 }
 
 return { makeDefault };

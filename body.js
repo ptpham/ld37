@@ -18,6 +18,13 @@ var Body = (function () {
     'nose',
   ];
 
+  function generateTextureCoords(points, i, j) {
+    var vert = 2, horz = 3;
+    var width = _.chain(points).map(0).max().value();
+    var height = _.chain(points).map(1).max().value();
+    return _.map(points, p => [(p[0]/width+i)/horz, (p[1]/height+j)/vert]);
+  }
+
   var shapes = [
     {
       asset: 'I',
@@ -154,12 +161,23 @@ var Body = (function () {
     ]).join(' ');
     var numAccessories = Math.ceil(Math.random() * 3);
     var bodyAccessories = _.sample(accessories, numAccessories);
+
+    var shape = _.sample(shapes);
+    var clothing = _.sample([0,1,2]);
+    var base = _.sample([0,1,2]);
+
+    var texcoords = {
+      base: generateTextureCoords(shape.coords.points, base, 0),
+      clothing: generateTextureCoords(shape.coords.points, clothing, 1)
+    };
+
     return {
       gender: gender,
       name: name,
-      base: _.sample([0, 1, 2]),
-      clothing: _.sample([0, 1, 2]),
-      shape: _.sample(shapes),
+      base,
+      clothing,
+      shape,
+      texcoords,
       accessories: bodyAccessories,
       freshness: 100,
     };
