@@ -41,110 +41,132 @@ img.texture {
 <script src="default.fs"></script>
 
 <script>
+var mainCanvas = document.querySelector('#main');
+var renderer = Render.makeDefault(mainCanvas);
 
-window.addEventListener('load', function() {
-  var mainCanvas = document.querySelector('#main');
-  var renderer = Render.makeDefault(mainCanvas);
-  renderer.prepareTextures();
-  renderer.render();
+var TIME_TO_BODY = 5000;
+var TIME_TO_FUNERAL = 10000;
+var TIME_TO_FRESHNESS = 1000;
+var FREEZER_AREA = [[250, 0], [550, 600]];
 
-  var TIME_TO_BODY = 5000;
-  var TIME_TO_FUNERAL = 10000;
-  var TIME_TO_FRESHNESS = 1000;
-  var FREEZER_AREA = [[250, 0], [550, 600]];
+var bodies = [];
+var stretchers = [
+  [[0,   0], [250, 100]],
+  [[0, 100], [250, 200]],
+  [[0, 200], [250, 300]],
+  [[0, 300], [250, 400]],
+  [[0, 400], [250, 500]],
+  [[0, 500], [250, 600]],
+];
+var bodiesWaiting = [];
+var coffins = [];
+var coffinPositions = [
+  [[550,   0], [800, 100]],
+  [[550, 100], [800, 200]],
+  [[550, 200], [800, 300]],
+  [[550, 300], [800, 400]],
+  [[550, 400], [800, 500]],
+  [[550, 500], [800, 600]],
+];
+var currentTime = 0;
 
-  var bodies = [];
-  var stretchers = [
-    [[0,   0], [100, 100]],
-    [[0, 100], [200, 200]],
-    [[0, 200], [300, 300]],
-    [[0, 300], [400, 400]],
-    [[0, 400], [500, 500]],
-    [[0, 500], [600, 600]],
-  ];
-  var bodiesWaiting = [];
-  var coffins = [];
-  var currentTime = 0;
+var nextTimeToBody;
+var nextTimeToFuneral;
+var nextFreshnessCheck;
 
-  var nextTimeToBody;
-  var nextTimeToFuneral;
-  var nextFreshnessCheck;
+function getBodiesInArea(pointA, pointB) {
+  var found = [];
+  var min = v2.create();
+  var max = v2.create();
 
-  function getBodiesInArea(pointA, pointB) {
-    var found = [];
-    var min = v2.create();
-    var max = v2.create();
+  bodies.forEach(function (body, i) {
+    renderer.getBodyBounds(i, min, max);
 
-    bodies.forEach(function (body, i) {
-      renderer.getBodyBounds(i, min, max);
+    var notXContained = max[0] < pointA[0] || min[0] > pointB[0];
+    var notYContained = max[1] < pointA[1] || min[1] > pointB[1];
 
-      var notXContained = max[0] < pointA[0] || min[0] > pointB[0];
-      var notYContained = max[1] < pointA[1] || min[1] > pointB[1];
+    if (!notXContained && !notYContained) found.push(i);
+  });
+  return found;
+}
 
-      if (!notXContained && !notYContained) found.push(i);
+function getAvailableStretcher() {
+  return stretchers.find(function (stretcher) {
+    return !getBodiesInArea(stretcher[0], stretcher[1]).length;
+  });
+}
+
+function addNewBody() {
+  var stretcher = getAvailableStretcher();
+  if (!stretcher) return;
+
+  var newBody = Body.generate();
+  var shape = newBody.shape;
+  var pixelPoints = shape.coords.points
+    .map(function (point) {
+      var pixelPoints = [point[0] * 50, point[1] * 50];
+      pixelPoints[0] += stretcher[0][0];
+      pixelPoints[1] += stretcher[0][1];
+      return pixelPoints;
     });
-    return found;
-  }
+  bodies.push(newBody);
+  bodiesWaiting.push(newBody);
+  renderer.addBody(shape.coords.triangles,
+    pixelPoints, newBody.texcoords, shape.coords.lines, shape.asset);
+}
 
-  function getAvailableStretcher() {
-    return stretchers.find(function (stretcher) {
-      return !getBodiesInArea(stretcher[0], stretcher[1]).length;
-    });
-  }
-
-  function addNewBody() {
-    var stretcher = getAvailableStretcher();
-    if (!stretcher) return;
-
-    var newBody = Body.generate();
-    var shape = newBody.shape;
-    var pixelPoints = shape.coords.points
-      .map(function (point) {
-        var pixelPoints = [point[0] * 50, point[1] * 50];
-        pixelPoints[0] += stretcher[0][0];
-        pixelPoints[1] += stretcher[0][1];
-        return pixelPoints;
-      });
-    bodies.push(newBody);
-    bodiesWaiting.push(newBody);
-    renderer.addBody(shape.coords.triangles,
-      pixelPoints, newBody.texcoords, shape.coords.lines, shape.asset);
-  }
-
-  function updateFreshness() {
-    var insideFreezer = new Set(getBodiesInArea(FREEZER_AREA[0], FREEZER_AREA[1]));
-    bodies.forEach(function (body, i) {
-      if (!insideFreezer.has(i)) body.freshness -= 1;
-    });
-  }
-
-  function update(time) {
-    if (currentTime) {
-      if (currentTime >= nextTimeToBody) {
-        addNewBody();
-        nextTimeToBody = currentTime + TIME_TO_BODY;
-      }
-
-      if (currentTime >= nextTimeToFuneral) {
-        bodiesWaiting = _.shuffle(bodiesWaiting);
-        coffins.push(bodiesWaiting.pop());
-        nextTimeToFuneral = currentTime + TIME_TO_FUNERAL;
-      }
-
-      if (currentTime >= nextFreshnessCheck) {
-        updateFreshness();
-        nextFreshnessCheck = currentTime + TIME_TO_FRESHNESS;
-      }
+function checkCoffins() {
+  coffins.forEach(function (requiredBody, i) {
+    var coffinPosition = coffinPositions[i];
+    var insideCoffin = getBodiesInArea(coffinPosition[0], coffinPosition[1]);
+    if (!insideCoffin.length) return;
+    if (bodies[insideCoffin[0]] === requiredBody) {
+      console.log('Correct body!');
     } else {
-      nextTimeToBody = time + 1000;
-      nextTimeToFuneral = time + TIME_TO_FUNERAL;
-      nextFreshnessCheck = nextTimeToBody + TIME_TO_FRESHNESS;
+      console.log('Incorrect body!');
+    }
+  });
+}
+
+function updateFreshness() {
+  var insideFreezer = new Set(getBodiesInArea(FREEZER_AREA[0], FREEZER_AREA[1]));
+  bodies.forEach(function (body, i) {
+    if (!insideFreezer.has(i)) body.freshness -= 1;
+  });
+}
+
+function update(time) {
+  if (currentTime) {
+    if (currentTime >= nextTimeToBody) {
+      addNewBody();
+      nextTimeToBody = currentTime + TIME_TO_BODY;
     }
 
-    currentTime = time;
-    requestAnimationFrame(update);
+    if (currentTime >= nextTimeToFuneral && bodiesWaiting.length) {
+      bodiesWaiting = _.shuffle(bodiesWaiting);
+      coffins.push(bodiesWaiting.pop());
+      nextTimeToFuneral = currentTime + TIME_TO_FUNERAL;
+    }
+
+    if (currentTime >= nextFreshnessCheck) {
+      checkCoffins();
+      updateFreshness();
+      nextFreshnessCheck = currentTime + TIME_TO_FRESHNESS;
+    }
+
+  } else {
+    nextTimeToBody = time + 1000;
+    nextTimeToFuneral = time + TIME_TO_FUNERAL;
+    nextFreshnessCheck = nextTimeToBody + TIME_TO_FRESHNESS;
   }
 
+  currentTime = time;
+  requestAnimationFrame(update);
+}
+
+window.addEventListener('load', function() {
+  renderer.prepareTextures();
+  renderer.render();
   update();
 });
 
