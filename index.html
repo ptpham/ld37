@@ -136,17 +136,19 @@ function removeBody(body) {
 }
 
 function checkCoffins() {
+  var bodiesToRemove = [];
   coffins.forEach(function (requiredBody, i) {
     var coffinPosition = coffinPositions[i];
     var insideCoffin = getBodiesInArea(coffinPosition[0], coffinPosition[1]);
     if (!insideCoffin.length) return;
     if (insideCoffin[0] === requiredBody) {
       console.log('Correct body!');
-      removeBody(insideCoffin[0]);
+      bodiesToRemove.push(insideCoffin[0]);
     } else {
       console.log('Incorrect body!');
     }
   });
+  bodiesToRemove.forEach(removeBody);
 }
 
 function updateFreshness() {
