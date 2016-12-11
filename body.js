@@ -1,4 +1,4 @@
-var body = (function () {
+var Body = (function () {
   var genders = ['M', 'F'];
   var prefixes = {
     M: ['Mr.', 'Sir', 'Grandpa', 'M.C.', 'Dr.', 'Brother'],
