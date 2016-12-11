@@ -71,10 +71,6 @@ function collideBodyBody(bt0, bn0, bt1, bn1) {
   return false;
 }
 
-function resolveBodyBody(bt0, bn0, bt1, bn1) {
-
-}
-
 var fakeTriangle = [[]];
 var fakeNormals = [[0,1]];
 function collideBodyPoint(bt0, bn0, point) {
@@ -101,6 +97,34 @@ function computeBodyNormals(result, triangles) {
       v2.sub(result[i][j], triangles[i][(j+1)%3], triangles[i][j]);
       v2.transformMat2(result[i][j], result[i][j], rotPIO2);
       v2.normalize(result[i][j], result[i][j]);
+    }
+  }
+}
+
+function computeBodyCenter(result, triangles) {
+  v2.set(result, 0, 0);
+  var target = result;
+
+  for (var i = 0; i < triangles.length; i++) {
+    for (var j = 0; j < 3; j++) {
+      v2.sub(diff, triangles[i][j], target);
+      v2.scale(diff, diff, 1/(3*i+j+1));
+      v2.add(target, target, diff);
+    }
+  }
+}
+
+function computeTriangleCenters(result, triangles) {
+  for (var i = 0; i < triangles.length; i++) {
+    v2.set(result[i], 0, 0);
+  }
+
+  for (var i = 0; i < triangles.length; i++) {
+    var target = result[i];
+    for (var j = 0; j < 3; j++) {
+      v2.sub(diff, triangles[i][j], target);
+      v2.scale(diff, diff, 1/(j+1));
+      v2.add(target, target, diff);
     }
   }
 }
@@ -160,9 +184,9 @@ function averageCommonPoints(triangles, ids, counts, averaged) {
   }
 }
 
-return { computeBodyNormals, collideBodyBody,
-  collideBodyPoint, segmentSprings, averageCommonPoints,
-  trianglesMin, trianglesMax };
+return { computeBodyNormals, computeTriangleCenters,
+  computeBodyCenter, collideBodyBody, collideBodyPoint,
+  segmentSprings, averageCommonPoints, trianglesMin, trianglesMax };
 
 })();
 
