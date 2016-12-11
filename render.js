@@ -9,7 +9,7 @@ var AC_SIZE = 20;
 function makeDefault(canvas) {
   var gl = canvas.getContext('webgl');
   var shader = createShader(gl, VS_DEFAULT, FS_DEFAULT);
-  var squareBuffer = createBuffer(gl, _.map([0,0,1,0,0,1,0,1,1,1,1,0], x => AC_SIZE*x));
+  var squareBuffer = createBuffer(gl, _.map([0,0,1,0,0,1,1,0,1,1,0,1], x => AC_SIZE*x));
   var textures = {};
   var bodies = [];
 
@@ -174,6 +174,7 @@ function makeDefault(canvas) {
   }
 
   var world = m3.create();
+  var diff2 = v2.create();
   function render() {
     requestAnimationFrame(render);
 
@@ -198,9 +199,9 @@ function makeDefault(canvas) {
     shader.uniforms.viewport = [canvas.width, canvas.height];
     for (var i = 0; i < bodies.length; i++) {
       var body = bodies[i];
+
       body.buffer.bind(); 
       gl.bufferData(gl.ARRAY_BUFFER, body.positions, gl.DYNAMIC_DRAW);
-      shader.attributes.position.pointer();
       shader.uniforms.color = body.color;
       
       var times = body.coffin ? 2 : 1;
@@ -213,6 +214,7 @@ function makeDefault(canvas) {
           shader.uniforms.world = m3.fromTranslation(world, diff);
           shader.uniforms.mask = COFFIN_MASK_COLOR;
         } else {
+          v2.set(diff, 0, 0);
           shader.uniforms.world = WORLD_IDENTITY;
           shader.uniforms.mask = NO_MASK_COLOR;
         }
@@ -236,7 +238,8 @@ function makeDefault(canvas) {
           body.texcoords.accessories[k].bind();
           shader.attributes.texcoord.pointer();
 
-          shader.uniforms.world = m3.fromTranslation(world, attachments[k]);
+          v2.add(diff2, diff, attachments[k]);
+          shader.uniforms.world = m3.fromTranslation(world, diff2);
           gl.drawArrays(gl.TRIANGLES, 0, squareBuffer.length / 8);
         }
         squareBuffer.unbind();

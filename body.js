@@ -178,7 +178,7 @@ var Body = (function () {
     var texcoords = {
       base: generateBodyTextureCoords(shape.coords.points, base, 0),
       clothing: generateBodyTextureCoords(shape.coords.points, clothing, 1),
-      accessories: _.map(accessoryIds, x => generateTextureCoords(0, x))
+      accessories: _.map(accessoryIds, x => generateAccessoryTextureCoords(0, x))
     };
 
     return {
