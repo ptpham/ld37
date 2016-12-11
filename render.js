@@ -105,6 +105,7 @@ function makeDefault(canvas) {
     extractEventPoint(currentPoint, e);
     for (var i = 0; i < bodies.length; i++) {
       if (Physics.collideBodyPoint(bodies[i].triangles, bodies[i].normals, currentPoint)) {
+        canvas.dispatchEvent(new CustomEvent('body-drag', { detail: bodies[i] }));
         v2.copy(lastPoint, currentPoint);
         bodies[i].color = [0,1,0,1];
         dragging = i;
@@ -164,6 +165,8 @@ function makeDefault(canvas) {
       for (var i = 0; i < affected.length; i++) {
         Physics.shiftBody(affected[i].points, currentPoint, shiftAmount, strength);
       }
+
+      canvas.dispatchEvent(new CustomEvent('body-collide', { detail: affected }));
     }
     v2.copy(lastPoint, currentPoint);
   });

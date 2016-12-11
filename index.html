@@ -54,7 +54,7 @@ body {
   display: none;
 }
 
-audio.sound, img.texture {
+img.texture {
   display: none;
 }
 </style>
@@ -70,7 +70,6 @@ audio.sound, img.texture {
   <img class="texture" name="O" src="assets/O-shape.png"></img>
   <img class="texture" name="Z" src="assets/Z-shape.png"></img>
   <img class="texture" name="accessories" src="assets/accessories.png"></img>
-  <audio class="sound" name="drag" src="assets/drag.mp3"></audio>
 </body>
 
 <script src="assets.js"></script>
@@ -252,23 +251,32 @@ function update(time) {
   requestAnimationFrame(update);
 }
 
-var auctx = new AudioContext();
-Sounds = {};
-
-function prepareAudio() {
-  for (var audio of document.querySelectorAll('audio.sound')) {
-    var created = auctx.createMediaElementSource(audio);
-    Sounds[audio.getAttribute('name')] = created;
-    created.connect(auctx.destination);
-  }
-}
+Sounds = {
+  drags: _.times(3, i => new Audio(`assets/drag${i}.mp3`)),
+  sploosh: new Audio('assets/sploosh.mp3')
+};
 
 window.addEventListener('load', function() {
-  prepareAudio();
   renderer.prepareTextures();
   renderer.render();
   update();
 });
+
+var dragId = 0;
+window.addEventListener('body-drag', function(e) {
+  var drag = Sounds.drags[dragId];
+  dragId = (dragId + 1) % 3;
+  console.log(drag.src);
+  drag.volume = 0.05;
+  drag.play();
+}, true);
+
+window.addEventListener('body-collide', function(e) {
+  if (e.detail.length > 1) {
+    Sounds.sploosh.volume = 0.05;
+    Sounds.sploosh.play();
+  }
+}, true);
 
 </script>
 </html>
