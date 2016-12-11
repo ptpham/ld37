@@ -1,6 +1,10 @@
 
 Render = (function() {
 
+var NO_MASK_COLOR = [1,1,1,1];
+var COFFIN_MASK_COLOR = [1, 0.7, 0.7, 0.5];
+var WORLD_IDENTITY = m3.create();
+
 function makeDefault(canvas) {
   var gl = canvas.getContext('webgl');
   var shader = createShader(gl, VS_DEFAULT, FS_DEFAULT);
@@ -92,8 +96,9 @@ function makeDefault(canvas) {
   });
 
   window.addEventListener('mouseup', function(e) {
-    if (dragging != -1) {
-      bodies[dragging].color = [1,0,0,1];
+    var body = bodies[dragging];
+    if (body != null) {
+      body.color = [1,0,0,1];
     }
     dragging = -1;
   });
@@ -106,9 +111,8 @@ function makeDefault(canvas) {
     var dampening = 1;
 
     v2.normalize(direction, shiftAmount);
-    if (dragging != -1) {
-      var body = bodies[dragging];
-
+    var body = bodies[dragging];
+    if (body != null) {
       var affected = [body];
       Physics.trianglesMin(min, body.triangles);
       Physics.trianglesMax(max, body.triangles);
@@ -153,6 +157,7 @@ function makeDefault(canvas) {
     }
   }
 
+  var world = m3.create();
   function render() {
     requestAnimationFrame(render);
 
@@ -183,14 +188,26 @@ function makeDefault(canvas) {
       shader.attributes.position.pointer();
       shader.uniforms.color = body.color;
       shader.uniforms.texture = body.texture.bind();
+      
+      var times = body.coffin ? 2 : 1;
+      for (var j = 0; j < times; j++) {
+        if (body.coffin && j == 0) {
+          v2.sub(diff, body.coffin.center, body.center);
+          shader.uniforms.world = m3.fromTranslation(world, diff);
+          shader.uniforms.mask = COFFIN_MASK_COLOR;
+        } else {
+          shader.uniforms.world = WORLD_IDENTITY;
+          shader.uniforms.mask = NO_MASK_COLOR;
+        }
 
-      body.texcoords.base.bind();
-      shader.attributes.texcoord.pointer();
-      gl.drawArrays(gl.TRIANGLES, 0, body.buffer.length / 8);
+        body.texcoords.base.bind();
+        shader.attributes.texcoord.pointer();
+        gl.drawArrays(gl.TRIANGLES, 0, body.buffer.length / 8);
 
-      body.texcoords.clothing.bind();
-      shader.attributes.texcoord.pointer();
-      gl.drawArrays(gl.TRIANGLES, 0, body.buffer.length / 8);
+        body.texcoords.clothing.bind();
+        shader.attributes.texcoord.pointer();
+        gl.drawArrays(gl.TRIANGLES, 0, body.buffer.length / 8);
+      }
     }
   }
 
