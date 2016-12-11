@@ -96,8 +96,9 @@ function makeDefault(canvas) {
   });
 
   window.addEventListener('mouseup', function(e) {
-    if (dragging != -1) {
-      bodies[dragging].color = [1,0,0,1];
+    var body = bodies[dragging];
+    if (body != null) {
+      body.color = [1,0,0,1];
     }
     dragging = -1;
   });
@@ -110,9 +111,8 @@ function makeDefault(canvas) {
     var dampening = 1;
 
     v2.normalize(direction, shiftAmount);
-    if (dragging != -1) {
-      var body = bodies[dragging];
-
+    var body = bodies[dragging];
+    if (body != null) {
       var affected = [body];
       Physics.trianglesMin(min, body.triangles);
       Physics.trianglesMax(max, body.triangles);
