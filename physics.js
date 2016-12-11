@@ -176,10 +176,46 @@ function extractCommonPoints(triangles, ids, common) {
   }
 }
 
+var draftShift = v2.create();
+function shiftBody(points, anchor, amount, strength) {
+  for (var i = 0; i < points.length; i++) {
+    var target = points[i];
+    var weight = Math.exp(-v2.distance(target, anchor)/strength);
+    v2.scale(draftShift, amount, weight);
+    v2.add(target, target, draftShift);
+  }
+}
+
+var min = v2.create();
+var max = v2.create();
+function boundaryDampening(triangles, direction, width, height) {
+  trianglesMin(min, triangles);
+  trianglesMax(max, triangles);
+  
+  var dampening = 1;
+  if (min[0] < 0) {
+    dampening *= 1 - Math.max(0, v2.dot(direction, [-1,0]));
+  }
+
+  if (min[1] < 0) {
+    dampening *= 1 - Math.max(0, v2.dot(direction, [0,-1]));
+  }
+
+  if (max[0] > width) {
+    dampening *= 1 - Math.max(0, v2.dot(direction, [1,0]));
+  }
+
+  if (max[1] > height) {
+    dampening *= 1 - Math.max(0, v2.dot(direction, [0,1]));
+  }
+
+  return dampening;
+}
+
 return { computeBodyNormals, computeTriangleCenters,
   computeBodyCenter, collideBodyBody, collideBodyPoint,
   segmentSprings, extractCommonPoints, replicateCommonPoints,
-  trianglesMin, trianglesMax };
+  trianglesMin, trianglesMax, shiftBody, boundaryDampening };
 
 })();
 
