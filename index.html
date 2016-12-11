@@ -54,12 +54,18 @@ var currentTime = 0;
 var nextTimeToBody;
 var nextTimeToFuneral;
 
+function unitToPixels(point) {
+  return [point[0] * 50, point[1] * 50];
+}
+
 function update(time) {
   if (currentTime) {
     if (currentTime >= nextTimeToBody) {
       var newBody = body.generate();
+      var shape = newBody.shape;
       bodies.push(newBody);
       bodiesWaiting.push(newBody);
+      renderer.addBody(shape.coords.triangles, shape.coords.points.map(unitToPixels));
       nextTimeToBody = currentTime + TIME_TO_BODY;
     }
 
