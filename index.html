@@ -54,7 +54,7 @@ body {
   display: none;
 }
 
-img.texture {
+audio.sound, img.texture {
   display: none;
 }
 </style>
@@ -70,6 +70,7 @@ img.texture {
   <img class="texture" name="O" src="assets/O-shape.png"></img>
   <img class="texture" name="Z" src="assets/Z-shape.png"></img>
   <img class="texture" name="accessories" src="assets/accessories.png"></img>
+  <audio class="sound" name="drag" src="assets/drag.mp3"></audio>
 </body>
 
 <script src="assets.js"></script>
@@ -251,7 +252,19 @@ function update(time) {
   requestAnimationFrame(update);
 }
 
+var auctx = new AudioContext();
+Sounds = {};
+
+function prepareAudio() {
+  for (var audio of document.querySelectorAll('audio.sound')) {
+    var created = auctx.createMediaElementSource(audio);
+    Sounds[audio.getAttribute('name')] = created;
+    created.connect(auctx.destination);
+  }
+}
+
 window.addEventListener('load', function() {
+  prepareAudio();
   renderer.prepareTextures();
   renderer.render();
   update();

@@ -2,7 +2,7 @@
 Render = (function() {
 
 var NO_MASK_COLOR = [1,1,1,1];
-var NO_TIN_COLOR = [0,0,0,0];
+var NO_TINT_COLOR = [0,0,0,0];
 var COFFIN_TINT_COLOR = [0.4,0,0,0];
 var COFFIN_MASK_COLOR = [1,1,1,0.5];
 var WORLD_IDENTITY = m3.create();
