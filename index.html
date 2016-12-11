@@ -39,6 +39,7 @@ renderer.render();
 
 var TIME_TO_BODY = 5000;
 var TIME_TO_FUNERAL = 10000;
+var TIME_TO_FRESHNESS = 1000;
 var FREEZER_AREA = [[250, 0], [550, 600]];
 
 var bodies = [];
@@ -56,6 +57,7 @@ var currentTime = 0;
 
 var nextTimeToBody;
 var nextTimeToFuneral;
+var nextFreshnessCheck;
 
 function getBodiesInArea(pointA, pointB) {
   var found = [];
@@ -97,6 +99,13 @@ function addNewBody() {
   renderer.addBody(shape.coords.triangles, pixelPoints);
 }
 
+function updateFreshness() {
+  var insideFreezer = new Set(getBodiesInArea(FREEZER_AREA[0], FREEZER_AREA[1]));
+  bodies.forEach(function (body, i) {
+    if (!insideFreezer.has(i)) body.freshness -= 1;
+  });
+}
+
 function update(time) {
   if (currentTime) {
     if (currentTime >= nextTimeToBody) {
@@ -109,9 +118,15 @@ function update(time) {
       coffins.push(bodiesWaiting.pop());
       nextTimeToFuneral = currentTime + TIME_TO_FUNERAL;
     }
+
+    if (currentTime >= nextFreshnessCheck) {
+      updateFreshness();
+      nextFreshnessCheck = currentTime + TIME_TO_FRESHNESS;
+    }
   } else {
     nextTimeToBody = time + 1000;
     nextTimeToFuneral = time + TIME_TO_FUNERAL;
+    nextFreshnessCheck = nextTimeToBody + TIME_TO_FRESHNESS;
   }
 
   currentTime = time;
