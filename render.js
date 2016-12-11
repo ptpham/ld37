@@ -194,7 +194,7 @@ function makeDefault(canvas) {
     }
   }
 
-  return { render, addBody, prepareTextures };
+  return { render, addBody, removeBody, prepareTextures };
 }
 
 return { makeDefault };
