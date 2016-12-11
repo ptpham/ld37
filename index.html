@@ -37,36 +37,79 @@ var mainCanvas = document.querySelector('#main');
 var renderer = Render.makeDefault(mainCanvas);
 renderer.render();
 
-var min = v2.create();
-var max = v2.create();
-renderer.getBodyBounds(0, min, max);
-console.log(min, max);
-
 var TIME_TO_BODY = 5000;
 var TIME_TO_FUNERAL = 10000;
+var TIME_TO_FRESHNESS = 1000;
 var FREEZER_AREA = [[250, 0], [550, 600]];
 
 var bodies = [];
+var stretchers = [
+  [[0,   0], [100, 100]],
+  [[0, 100], [200, 200]],
+  [[0, 200], [300, 300]],
+  [[0, 300], [400, 400]],
+  [[0, 400], [500, 500]],
+  [[0, 500], [600, 600]],
+];
 var bodiesWaiting = [];
 var coffins = [];
 var currentTime = 0;
 
 var nextTimeToBody;
 var nextTimeToFuneral;
+var nextFreshnessCheck;
 
-function unitToPixels(point) {
-  return [point[0] * 50, point[1] * 50];
+function getBodiesInArea(pointA, pointB) {
+  var found = [];
+  var min = v2.create();
+  var max = v2.create();
+
+  bodies.forEach(function (body, i) {
+    renderer.getBodyBounds(i, min, max);
+
+    var notXContained = max[0] < pointA[0] || min[0] > pointB[0];
+    var notYContained = max[1] < pointA[1] || min[1] > pointB[1];
+
+    if (!notXContained && !notYContained) found.push(i);
+  });
+  return found;
+}
+
+function getAvailableStretcher() {
+  return stretchers.find(function (stretcher) {
+    return !getBodiesInArea(stretcher[0], stretcher[1]).length;
+  });
+}
+
+function addNewBody() {
+  var stretcher = getAvailableStretcher();
+  if (!stretcher) return;
+
+  var newBody = Body.generate();
+  var shape = newBody.shape;
+  var pixelPoints = shape.coords.points
+    .map(function (point) {
+      var pixelPoints = [point[0] * 50, point[1] * 50];
+      pixelPoints[0] += stretcher[0][0];
+      pixelPoints[1] += stretcher[0][1];
+      return pixelPoints;
+    });
+  bodies.push(newBody);
+  bodiesWaiting.push(newBody);
+  renderer.addBody(shape.coords.triangles, pixelPoints, shape.coords.lines);
+}
+
+function updateFreshness() {
+  var insideFreezer = new Set(getBodiesInArea(FREEZER_AREA[0], FREEZER_AREA[1]));
+  bodies.forEach(function (body, i) {
+    if (!insideFreezer.has(i)) body.freshness -= 1;
+  });
 }
 
 function update(time) {
   if (currentTime) {
     if (currentTime >= nextTimeToBody) {
-      var newBody = body.generate();
-      var shape = newBody.shape;
-      bodies.push(newBody);
-      bodiesWaiting.push(newBody);
-      renderer.addBody(shape.coords.triangles,
-        shape.coords.points.map(unitToPixels), shape.coords.lines);
+      addNewBody();
       nextTimeToBody = currentTime + TIME_TO_BODY;
     }
 
@@ -75,9 +118,15 @@ function update(time) {
       coffins.push(bodiesWaiting.pop());
       nextTimeToFuneral = currentTime + TIME_TO_FUNERAL;
     }
+
+    if (currentTime >= nextFreshnessCheck) {
+      updateFreshness();
+      nextFreshnessCheck = currentTime + TIME_TO_FRESHNESS;
+    }
   } else {
     nextTimeToBody = time + 1000;
     nextTimeToFuneral = time + TIME_TO_FUNERAL;
+    nextFreshnessCheck = nextTimeToBody + TIME_TO_FRESHNESS;
   }
 
   currentTime = time;
