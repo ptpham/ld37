@@ -84,6 +84,23 @@ function makeDefault(canvas) {
   }
 
   var diff = v2.create(), direction = v2.create();
+  var min = v2.create(), max = v2.create();
+
+  function boundaryDampening(triangles, direction) {
+    Physics.trianglesMin(min, triangles);
+    Physics.trianglesMax(max, triangles);
+    
+    var dampening = 1;
+    if (min[1] < 0) {
+      dampening *= 1 - Math.max(0, v2.dot(direction, [0,-1]));
+    }
+
+    if (max[1] > canvas.height) {
+      dampening *= 1 - Math.max(0, v2.dot(direction, [0,1]));
+    }
+    return dampening;
+  }
+
   canvas.addEventListener('mousemove', function(e) {
     extractEventPoint(currentPoint, e);
     v2.sub(shiftAmount, currentPoint, lastPoint);
@@ -94,12 +111,19 @@ function makeDefault(canvas) {
       var body = bodies[dragging];
 
       var affected = [body];
+      Physics.trianglesMin(min, body.triangles);
+      Physics.trianglesMax(max, body.triangles);
+      if (min[1] < 0 && direction[1] < 0) { shiftAmount[1] = 0; }
+      if (max[1] > canvas.height && direction[1] > 0) { shiftAmount[1] = 0; }
+
       for (var i = 0; i < bodies.length; i++) {
         var other = bodies[i];
+
         if (other == body) continue;
 
         if (Physics.collideBodyBody(body.triangles, body.normals,
           other.triangles, other.normals)) {
+          dampening *= boundaryDampening(other.triangles, direction);
 
           v2.sub(diff, other.center, body.center);
           v2.normalize(diff, diff);
