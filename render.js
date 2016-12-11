@@ -48,6 +48,15 @@ function makeDefault(canvas) {
     Physics.trianglesMax(max, bodies[id].triangles);
   }
 
+  function shiftBody(id, shift) {
+    var triangles = bodies[id].triangles;
+    for (var i = 0; i < triangles.length; i++) {
+      for (var j = 0; j < 3; j++) {
+        v2.add(triangles[i][j], triangles[i][j], shift);
+      }
+    }
+  }
+
   function addTestBody() {
     addBody([[0,1,2], [2,0,3]], [[100, 100], [200, 100], [200,200], [100,200]],
       [[0,1], [1,2],[2,0], [2,3], [3,0], [1,3]]);
@@ -178,7 +187,7 @@ function makeDefault(canvas) {
     }
   }
 
-  return { render, addBody, getBodyBounds, prepareTextures };
+  return { render, addBody, getBodyBounds, shiftBody, prepareTextures };
 }
 
 return { makeDefault };
