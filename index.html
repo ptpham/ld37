@@ -127,6 +127,7 @@ var renderer = Render.makeDefault(mainCanvas);
 var TIME_TO_BODY = 1500;
 var TIME_TO_FUNERAL = 20000;
 var TIME_TO_FRESHNESS = 1000;
+var COFFIN_MATCH_DISTANCE = 50;
 var FREEZER_AREA = [[250, 0], [550, 600]];
 
 var bodies = [];
@@ -148,6 +149,14 @@ var coffinPositions = [
   [[650, 400], [800, 500]],
   [[650, 500], [800, 600]],
 ];
+
+var coffinCenters = _.map(coffinPositions, x => {
+  var result = v2.create();
+  v2.add(result, x[0], x[1]);
+  v2.scale(result, result, 0.5);
+  return result;
+});
+
 var currentTime = 0;
 
 var nextTimeToBody;
@@ -216,7 +225,7 @@ function removeBody(body) {
 
   var coffinIndex = _.indexOf(coffins, body);
   if (coffinIndex > -1) {
-    coffins.splice(coffinIndex, 1);
+    coffins[coffinIndex] = null;
   }
 }
 
@@ -226,9 +235,13 @@ function checkCoffins() {
     if (requiredBody == null) return;
 
     var coffinPosition = coffinPositions[i];
-    var insideCoffin = getBodiesInArea(coffinPosition[0], coffinPosition[1]);
+    var insideCoffin = getBodiesInArea(coffinPosition[0], coffinPosition[1]).filter(x => {
+      return v2.distance(x.center, coffinCenters[i]) < COFFIN_MATCH_DISTANCE;
+    });
     if (!insideCoffin.length) return;
-    if (insideCoffin[0] === requiredBody) {
+    var found = insideCoffin.indexOf(requiredBody) != -1;
+
+    if (found) {
       Speech.showCorrectPhrase(requiredBody.data, i);
       bodiesToRemove.push(requiredBody);
       success_counter.innerHTML = +success_counter.innerHTML + 1;
