@@ -5,6 +5,7 @@ var NO_MASK_COLOR = [1,1,1,1];
 var NO_TINT_COLOR = [0,0,0,0];
 var COFFIN_TINT_COLOR = [0.4,0,0,0];
 var COFFIN_MASK_COLOR = [1,1,1,0.5];
+var MAX_STALE_MASK_COLOR = [0.2,0.2,0.2,1];
 var WORLD_IDENTITY = m3.create();
 var AC_SIZE = 20;
 
@@ -180,6 +181,7 @@ function makeDefault(canvas) {
 
   var world = m3.create();
   var diff2 = v2.create();
+  var stale = [1,1,1,1];
   function render() {
     requestAnimationFrame(render);
 
@@ -222,7 +224,10 @@ function makeDefault(canvas) {
         } else {
           v2.set(diff, 0, 0);
           shader.uniforms.world = WORLD_IDENTITY;
-          shader.uniforms.mask = NO_MASK_COLOR;
+          for (var k = 0; k < 3; k++) {
+            stale[k] = 1*body.data.freshness/100 + (1-body.data.freshness/100)*MAX_STALE_MASK_COLOR[k];
+          }
+          shader.uniforms.mask = stale;
           shader.uniforms.tint = NO_TINT_COLOR;
         }
 
