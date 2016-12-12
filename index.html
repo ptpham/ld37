@@ -12,6 +12,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: helvetica;
+  background: rgb(30, 20, 60);
+  color: white;
+}
+
+*::selection {
+  background: none;
 }
 
 #container {
@@ -57,13 +64,46 @@ body {
 img.texture {
   display: none;
 }
+
+h1 {
+  text-align: center;
+}
+
+column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px;
+  flex-shrink: 0;
+  width: 200px;
+}
+
+counter {
+  padding: 40px;
+  height: 100px;
+  width: 100px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  font-size: 80px;
+  justify-content: center;
+  display: flex;
+}
+
 </style>
 
 <body>
+  <column>
+    <h1>"Expired" Clients</h1>
+    <counter id="expired_counter">0</counter>
+  </column>
   <div id="container">
     <canvas id="main" width="800" height="600"></canvas>
     <div id="speech" class="hide"></div>
   </div>
+  <column>
+    <h1>Successful Deliveries</h1>
+    <counter id="success_counter">0</counter>
+  </column>
 
   <img class="texture" name="I" src="assets/I-shape.png"></img>
   <img class="texture" name="L" src="assets/L-shape.png"></img>
@@ -191,6 +231,7 @@ function checkCoffins() {
     if (insideCoffin[0] === requiredBody) {
       Speech.showCorrectPhrase(requiredBody.data, i);
       bodiesToRemove.push(requiredBody);
+      success_counter.innerHTML = +success_counter.innerHTML + 1;
     } else {
       Speech.showIncorrectPhrase(requiredBody.data, i);
     }
@@ -200,7 +241,14 @@ function checkCoffins() {
 
 function updateFreshness() {
   var insideFreezer = new Set(getBodiesInArea(FREEZER_AREA[0], FREEZER_AREA[1]));
-  insideFreezer.forEach(body => body.freshness -= 1);
+  bodiesWaiting.forEach(body => {
+    if (insideFreezer.has(body)) return;
+    body.data.freshness = body.data.freshness - 10;
+    if (body.data.freshness < 0) {
+      expired_counter.innerHTML = +expired_counter.innerHTML + 1;
+      removeBody(body);
+    }
+  });
 }
 
 function addCoffinForBody(body) {
