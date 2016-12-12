@@ -143,8 +143,8 @@ counter {
 var mainCanvas = document.querySelector('#main');
 var renderer = Render.makeDefault(mainCanvas);
 
-var TIME_TO_BODY = 1500;
-var TIME_TO_FUNERAL = 20000;
+var TIME_TO_BODY = 4000;
+var TIME_TO_FUNERAL = 18000;
 var TIME_TO_FRESHNESS = 1000;
 var COFFIN_MATCH_DISTANCE = 50;
 var FREEZER_AREA = [[250, 0], [550, 600]];
@@ -273,9 +273,9 @@ function checkCoffins() {
 
 function updateFreshness() {
   var insideFreezer = new Set(getBodiesInArea(FREEZER_AREA[0], FREEZER_AREA[1]));
-  bodiesWaiting.forEach(body => {
+  bodies.forEach(body => {
     if (insideFreezer.has(body)) return;
-    body.data.freshness = body.data.freshness - 10;
+    body.data.freshness = body.data.freshness - 5;
     if (body.data.freshness < 0) {
       expired_counter.innerHTML = +expired_counter.innerHTML + 1;
       removeBody(body);
