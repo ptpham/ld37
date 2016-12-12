@@ -127,7 +127,7 @@ var renderer = Render.makeDefault(mainCanvas);
 var TIME_TO_BODY = 1500;
 var TIME_TO_FUNERAL = 20000;
 var TIME_TO_FRESHNESS = 1000;
-var COFFIN_MATCH_DISTANCE = 30;
+var COFFIN_MATCH_DISTANCE = 50;
 var FREEZER_AREA = [[250, 0], [550, 600]];
 
 var bodies = [];
@@ -225,7 +225,7 @@ function removeBody(body) {
 
   var coffinIndex = _.indexOf(coffins, body);
   if (coffinIndex > -1) {
-    coffins.splice(coffinIndex, 1);
+    coffins[coffinIndex] = null;
   }
 }
 
