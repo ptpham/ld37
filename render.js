@@ -53,8 +53,14 @@ function makeDefault(canvas) {
       return createBuffer(gl, _.chain(ids).flatten().map(i => x[i]).flatten().value());
     }
 
+    function makeAccessoryTextureCoordBuffer(accessoryTexcoords) {
+      return createBuffer(gl, _.flatten(accessoryTexcoords));
+    }
+
     texcoords = _.mapValues(texcoords, (x,name) => {
-      if (name == 'accessories') return _.map(x, makeTextureCoordBuffer);
+      if (name == 'accessories') {
+        return _.map(x, makeAccessoryTextureCoordBuffer);
+      }
       return makeTextureCoordBuffer(x);
     });
     var texture = textures[shapeName];
